@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Flame, Calendar, Coins, Clock, SmilePlus, TrendingDown, Wind, BookOpen } from 'lucide-react';
@@ -30,8 +30,13 @@ export default function Dashboard() {
     c => c.date === new Date().toISOString().split('T')[0]
   );
 
+  useEffect(() => {
+    if (!profile?.onboardingComplete) {
+      navigate('/onboarding');
+    }
+  }, [profile, navigate]);
+
   if (!profile?.onboardingComplete) {
-    navigate('/onboarding');
     return null;
   }
 
