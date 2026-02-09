@@ -1,22 +1,23 @@
 import { useState, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 
-const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-tts`;
+const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`;
 
 export interface VoiceOption {
   id: string;
   label: string;
-  voiceName: string;
-  ssmlGender: string;
+  voiceId: string;
 }
 
 export const VOICE_OPTIONS: VoiceOption[] = [
-  { id: 'female-a', label: 'Femenina suave (Neural2-A)', voiceName: 'es-ES-Neural2-A', ssmlGender: 'FEMALE' },
-  { id: 'female-c', label: 'Femenina cálida (Neural2-C)', voiceName: 'es-ES-Neural2-C', ssmlGender: 'FEMALE' },
-  { id: 'female-e', label: 'Femenina clara (Neural2-E)', voiceName: 'es-ES-Neural2-E', ssmlGender: 'FEMALE' },
-  { id: 'male-b', label: 'Masculina profunda (Neural2-B)', voiceName: 'es-ES-Neural2-B', ssmlGender: 'MALE' },
-  { id: 'male-d', label: 'Masculina serena (Neural2-D)', voiceName: 'es-ES-Neural2-D', ssmlGender: 'MALE' },
-  { id: 'male-f', label: 'Masculina grave (Neural2-F)', voiceName: 'es-ES-Neural2-F', ssmlGender: 'MALE' },
+  { id: 'laura', label: 'Laura (femenina, cálida)', voiceId: 'FGY2WhTYpPnrIDTdsKH5' },
+  { id: 'sarah', label: 'Sarah (femenina, suave)', voiceId: 'EXAVITQu4vr4xnSDxMaL' },
+  { id: 'alice', label: 'Alice (femenina, clara)', voiceId: 'Xb7hH8MSUJpSbSDYk0k2' },
+  { id: 'lily', label: 'Lily (femenina, serena)', voiceId: 'pFZP5JQG7iQjIQuC4Bku' },
+  { id: 'george', label: 'George (masculina, profunda)', voiceId: 'JBFqnCBsd6RMkjVDRZzb' },
+  { id: 'daniel', label: 'Daniel (masculina, calmada)', voiceId: 'onwK4e9ZLuTAKqWW03F9' },
+  { id: 'brian', label: 'Brian (masculina, grave)', voiceId: 'nPczCjzI2devNBz1zQrb' },
+  { id: 'callum', label: 'Callum (masculina, serena)', voiceId: 'N2lVS1w4EtoT3dr4eOWO' },
 ];
 
 export function useSessionAudio() {
@@ -53,8 +54,7 @@ export function useSessionAudio() {
         },
         body: JSON.stringify({
           text,
-          voiceName: selectedVoice.voiceName,
-          ssmlGender: selectedVoice.ssmlGender,
+          voiceId: selectedVoice.voiceId,
         }),
       });
 
