@@ -12,47 +12,33 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voiceId } = await req.json();
+    const { prompt, duration } = await req.json();
     const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
 
     if (!ELEVENLABS_API_KEY) {
       throw new Error("ELEVENLABS_API_KEY is not configured");
     }
 
-    if (!text || text.length === 0) {
-      throw new Error("Text is required");
-    }
+    const musicPrompt = prompt || "Soft ambient meditation music, calm piano and gentle pads, relaxing and peaceful, minimal, slow tempo, spa-like atmosphere";
+    const musicDuration = duration || 60;
 
-    // Use Laura voice (calm, soothing female Spanish voice) by default
-    const selectedVoice = voiceId || "FGY2WhTYpPnrIDTdsKH5";
-
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoice}?output_format=mp3_44100_128`,
-      {
-        method: "POST",
-        headers: {
-          "xi-api-key": ELEVENLABS_API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text,
-          model_id: "eleven_multilingual_v2",
-          voice_settings: {
-            stability: 0.7,
-            similarity_boost: 0.75,
-            style: 0.3,
-            use_speaker_boost: true,
-            speed: 0.65,
-          },
-        }),
-      }
-    );
+    const response = await fetch("https://api.elevenlabs.io/v1/music", {
+      method: "POST",
+      headers: {
+        "xi-api-key": ELEVENLABS_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: musicPrompt,
+        duration_seconds: musicDuration,
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("ElevenLabs API error:", response.status, errorText);
+      console.error("ElevenLabs Music API error:", response.status, errorText);
       return new Response(
-        JSON.stringify({ error: `ElevenLabs API error: ${response.status}` }),
+        JSON.stringify({ error: `Music API error: ${response.status}` }),
         {
           status: response.status,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -69,7 +55,7 @@ serve(async (req) => {
       },
     });
   } catch (e) {
-    console.error("TTS error:", e);
+    console.error("Music generation error:", e);
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
       {
