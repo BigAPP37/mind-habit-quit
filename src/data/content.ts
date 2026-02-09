@@ -25,7 +25,7 @@ export const breathingSessions: Session[] = [
   {
     id: 'b1', type: 'breathing', title: 'Respiración de caja 4-4-4-4',
     durationMinutes: 4, tags: ['calma', 'craving', 'ansiedad'],
-    scriptText: 'Siéntate cómodo. Inhala por la nariz contando 4... Mantén 4... Exhala por la boca 4... Mantén vacío 4... Repite. Cada ciclo disuelve un poco más la tensión. El craving es una ola: sube, se mantiene y baja. Tú solo respiras.'
+    scriptText: 'Ponte cómodo, cierra los ojos si quieres, y vamos a respirar juntos.\n\nInhala despacio por la nariz... uno, dos, tres, cuatro.\n\nAhora mantén el aire... uno, dos, tres, cuatro.\n\nExhala suavemente por la boca... uno, dos, tres, cuatro.\n\nY quédate vacío un momento... uno, dos, tres, cuatro.\n\nMuy bien. Vamos otra vez.\n\nInhala... deja que el aire llene tu pecho poco a poco.\n\nMantén... sin forzar, solo sostén.\n\nExhala... suelta todo lo que no necesitas.\n\nY vacío... disfruta ese silencio interior.\n\nCada vez que respiras así, la tensión se va disolviendo. Si notas un craving, no luches contra él. Es como una ola: sube, se mantiene un momento, y después baja sola. Tú solo tienes que seguir respirando, y dejarla pasar.'
   },
   {
     id: 'b2', type: 'breathing', title: 'Respiración 4-7-8 para calma profunda',
