@@ -1,24 +1,17 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-
-const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`;
 
 export function useSessionAudio() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const blobUrlRef = useRef<string | null>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const stop = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
-    }
+    window.speechSynthesis.cancel();
+    setIsPlaying(false);
   }, []);
 
   const play = useCallback(async (text: string) => {
-    // If already playing, stop
     if (isPlaying) {
       stop();
       return;
@@ -27,39 +20,37 @@ export function useSessionAudio() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(TTS_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ text }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}`);
+      // Wait for voices to load if needed
+      let voices = window.speechSynthesis.getVoices();
+      if (voices.length === 0) {
+        await new Promise<void>((resolve) => {
+          window.speechSynthesis.onvoiceschanged = () => resolve();
+          setTimeout(resolve, 1000);
+        });
+        voices = window.speechSynthesis.getVoices();
       }
 
-      // Clean up previous blob URL
-      if (blobUrlRef.current) {
-        URL.revokeObjectURL(blobUrlRef.current);
-      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'es-ES';
+      utterance.rate = 0.85;
+      utterance.pitch = 0.95;
 
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      blobUrlRef.current = audioUrl;
+      // Prefer a Spanish female voice for a calming tone
+      const spanishVoice = voices.find(v => v.lang.startsWith('es') && v.name.toLowerCase().includes('female'))
+        || voices.find(v => v.lang.startsWith('es'))
+        || voices[0];
+      if (spanishVoice) utterance.voice = spanishVoice;
 
-      const audio = new Audio(audioUrl);
-      audioRef.current = audio;
-
-      audio.onended = () => setIsPlaying(false);
-      audio.onerror = () => {
+      utterance.onend = () => setIsPlaying(false);
+      utterance.onerror = (e) => {
+        if (e.error !== 'canceled') {
+          toast.error('Error al reproducir el audio');
+        }
         setIsPlaying(false);
-        toast.error('Error al reproducir el audio');
       };
 
-      await audio.play();
+      utteranceRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
       setIsPlaying(true);
     } catch (error) {
       console.error('TTS error:', error);
@@ -71,10 +62,6 @@ export function useSessionAudio() {
 
   const cleanup = useCallback(() => {
     stop();
-    if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = null;
-    }
   }, [stop]);
 
   return { play, stop, isLoading, isPlaying, cleanup };
