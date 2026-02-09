@@ -6,7 +6,7 @@ import { allSessions } from '@/data/content';
 import { useAppState } from '@/hooks/useStore';
 import { BreathingCircle } from '@/components/BreathingCircle';
 import { Button } from '@/components/ui/button';
-import { useSessionAudio, VOICE_OPTIONS, VoiceOption } from '@/hooks/useSessionAudio';
+import { useSessionAudio, VOICE_OPTIONS, VoiceOption, getSavedVoice, saveVoicePreference } from '@/hooks/useSessionAudio';
 import {
   Select,
   SelectContent,
@@ -21,7 +21,7 @@ export default function SessionDetail() {
   const { addSessionCompletion } = useAppState();
   const [completed, setCompleted] = useState(false);
   const [rating, setRating] = useState(0);
-  const [selectedVoice, setSelectedVoice] = useState<VoiceOption>(VOICE_OPTIONS[0]);
+  const [selectedVoice, setSelectedVoice] = useState<VoiceOption>(getSavedVoice);
   const { play, stop, isLoading: audioLoading, isPlaying, cleanup } = useSessionAudio();
 
   useEffect(() => {
@@ -91,7 +91,10 @@ export default function SessionDetail() {
                 value={selectedVoice.id}
                 onValueChange={(val) => {
                   const voice = VOICE_OPTIONS.find(v => v.id === val);
-                  if (voice) setSelectedVoice(voice);
+                  if (voice) {
+                    setSelectedVoice(voice);
+                    saveVoicePreference(voice);
+                  }
                 }}
               >
                 <SelectTrigger className="flex-1 h-9 text-xs rounded-full">

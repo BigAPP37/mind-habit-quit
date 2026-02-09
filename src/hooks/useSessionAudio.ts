@@ -25,6 +25,23 @@ export const VOICE_OPTIONS: VoiceOption[] = [
   { id: 'brian', label: 'Brian (masculina, grave)', voiceId: 'nPczCjzI2devNBz1zQrb' },
 ];
 
+const VOICE_PREF_KEY = 'rewire-voice-preference';
+
+export function getSavedVoice(): VoiceOption {
+  try {
+    const saved = localStorage.getItem(VOICE_PREF_KEY);
+    if (saved) {
+      const voice = VOICE_OPTIONS.find(v => v.id === saved);
+      if (voice) return voice;
+    }
+  } catch {}
+  return VOICE_OPTIONS[0];
+}
+
+export function saveVoicePreference(voice: VoiceOption) {
+  localStorage.setItem(VOICE_PREF_KEY, voice.id);
+}
+
 export function useSessionAudio() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
