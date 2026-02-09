@@ -10,14 +10,19 @@ export interface VoiceOption {
 }
 
 export const VOICE_OPTIONS: VoiceOption[] = [
-  { id: 'laura', label: 'Laura (femenina, cálida)', voiceId: 'FGY2WhTYpPnrIDTdsKH5' },
+  // Voces femeninas ideales para meditación
+  { id: 'matilda', label: 'Matilda (femenina, cálida y suave)', voiceId: 'XrExE9yKIg1WjnnlVkGX' },
+  { id: 'jessica', label: 'Jessica (femenina, gentil)', voiceId: 'cgSgspJ2msm6clMCkdW9' },
+  { id: 'laura', label: 'Laura (femenina, serena)', voiceId: 'FGY2WhTYpPnrIDTdsKH5' },
+  { id: 'lily', label: 'Lily (femenina, tranquila)', voiceId: 'pFZP5JQG7iQjIQuC4Bku' },
   { id: 'sarah', label: 'Sarah (femenina, suave)', voiceId: 'EXAVITQu4vr4xnSDxMaL' },
   { id: 'alice', label: 'Alice (femenina, clara)', voiceId: 'Xb7hH8MSUJpSbSDYk0k2' },
-  { id: 'lily', label: 'Lily (femenina, serena)', voiceId: 'pFZP5JQG7iQjIQuC4Bku' },
-  { id: 'george', label: 'George (masculina, profunda)', voiceId: 'JBFqnCBsd6RMkjVDRZzb' },
-  { id: 'daniel', label: 'Daniel (masculina, calmada)', voiceId: 'onwK4e9ZLuTAKqWW03F9' },
-  { id: 'brian', label: 'Brian (masculina, grave)', voiceId: 'nPczCjzI2devNBz1zQrb' },
+  // Voces neutras / masculinas para meditación
+  { id: 'river', label: 'River (neutra, fluida y serena)', voiceId: 'SAz9YHcvj6GT2YYXdXww' },
   { id: 'callum', label: 'Callum (masculina, serena)', voiceId: 'N2lVS1w4EtoT3dr4eOWO' },
+  { id: 'daniel', label: 'Daniel (masculina, calmada)', voiceId: 'onwK4e9ZLuTAKqWW03F9' },
+  { id: 'george', label: 'George (masculina, profunda)', voiceId: 'JBFqnCBsd6RMkjVDRZzb' },
+  { id: 'brian', label: 'Brian (masculina, grave)', voiceId: 'nPczCjzI2devNBz1zQrb' },
 ];
 
 export function useSessionAudio() {
