@@ -61,7 +61,7 @@ export default function SessionDetail() {
 
   const handleStartSession = () => {
     setSessionStarted(true);
-    playAmbient(session.durationMinutes);
+    playAmbient();
   };
 
   const handleComplete = () => {

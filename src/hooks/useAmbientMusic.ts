@@ -1,119 +1,112 @@
 import { useState, useRef, useCallback } from 'react';
 
-const AMBIENT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-ambient`;
-const CACHE_KEY = 'rewire-ambient-music';
-
+/**
+ * Generates gentle ambient meditation tones using Web Audio API.
+ * No external API needed — runs entirely in the browser.
+ */
 export function useAmbientMusic() {
-  const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const blobUrlRef = useRef<string | null>(null);
+  const ctxRef = useRef<AudioContext | null>(null);
+  const nodesRef = useRef<{ gains: GainNode[]; masterGain: GainNode } | null>(null);
 
-  const fadeIn = useCallback((audio: HTMLAudioElement, targetVolume: number, durationMs: number) => {
-    audio.volume = 0;
-    const steps = 20;
-    const stepTime = durationMs / steps;
-    const volumeStep = targetVolume / steps;
-    let currentStep = 0;
+  const play = useCallback(async () => {
+    if (isPlaying) return;
 
-    const interval = setInterval(() => {
-      currentStep++;
-      audio.volume = Math.min(volumeStep * currentStep, targetVolume);
-      if (currentStep >= steps) clearInterval(interval);
-    }, stepTime);
-  }, []);
+    const ctx = new AudioContext();
+    ctxRef.current = ctx;
 
-  const fadeOut = useCallback((audio: HTMLAudioElement, durationMs: number): Promise<void> => {
-    return new Promise((resolve) => {
-      const startVolume = audio.volume;
-      const steps = 20;
-      const stepTime = durationMs / steps;
-      const volumeStep = startVolume / steps;
-      let currentStep = 0;
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0, ctx.currentTime);
+    masterGain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 4); // Gentle fade in
+    masterGain.connect(ctx.destination);
 
-      const interval = setInterval(() => {
-        currentStep++;
-        audio.volume = Math.max(startVolume - volumeStep * currentStep, 0);
-        if (currentStep >= steps) {
-          clearInterval(interval);
-          audio.pause();
-          resolve();
-        }
-      }, stepTime);
+    // Layered ambient drone — warm, meditative frequencies
+    const tones = [
+      { freq: 174, type: 'sine' as OscillatorType, gain: 0.35 },    // Solfeggio — grounding
+      { freq: 261.63, type: 'sine' as OscillatorType, gain: 0.15 }, // C4 — warm pad
+      { freq: 329.63, type: 'sine' as OscillatorType, gain: 0.12 }, // E4 — gentle harmony
+      { freq: 392, type: 'sine' as OscillatorType, gain: 0.1 },     // G4 — open fifth
+      { freq: 528, type: 'sine' as OscillatorType, gain: 0.08 },    // Solfeggio — healing
+    ];
+
+    const gains: GainNode[] = [];
+
+    tones.forEach((tone) => {
+      const osc = ctx.createOscillator();
+      osc.type = tone.type;
+      osc.frequency.setValueAtTime(tone.freq, ctx.currentTime);
+
+      // Very subtle frequency drift for organic feel
+      const lfo = ctx.createOscillator();
+      lfo.frequency.setValueAtTime(0.05 + Math.random() * 0.1, ctx.currentTime);
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.setValueAtTime(0.3, ctx.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+      lfo.start();
+
+      const toneGain = ctx.createGain();
+      toneGain.gain.setValueAtTime(tone.gain, ctx.currentTime);
+
+      osc.connect(toneGain);
+      toneGain.connect(masterGain);
+      osc.start();
+
+      gains.push(toneGain);
     });
-  }, []);
 
-  const play = useCallback(async (sessionDurationMin: number = 5) => {
-    if (isPlaying || isLoading) return;
-
-    setIsLoading(true);
-
-    try {
-      // Check cache first
-      const cached = sessionStorage.getItem(CACHE_KEY);
-      let audioUrl: string;
-
-      if (cached) {
-        audioUrl = cached;
-      } else {
-        const response = await fetch(AMBIENT_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            prompt: 'Gentle ambient meditation music, soft piano notes with warm atmospheric pads, very calm and soothing, minimal melody, slow tempo, spa and mindfulness atmosphere, no drums, no vocals',
-            duration: Math.min(sessionDurationMin * 60, 120),
-          }),
-        });
-
-        if (!response.ok) throw new Error(`Error ${response.status}`);
-
-        if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
-        const blob = await response.blob();
-        audioUrl = URL.createObjectURL(blob);
-        blobUrlRef.current = audioUrl;
-      }
-
-      const audio = new Audio(audioUrl);
-      audio.loop = true;
-      audioRef.current = audio;
-
-      audio.onerror = () => {
-        setIsPlaying(false);
-        setIsLoading(false);
-      };
-
-      await audio.play();
-      fadeIn(audio, 0.25, 3000); // Fade in over 3s to low volume
-      setIsPlaying(true);
-    } catch (error) {
-      console.error('Ambient music error:', error);
-    } finally {
-      setIsLoading(false);
+    // Soft filtered noise layer for texture
+    const bufferSize = ctx.sampleRate * 2;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = (Math.random() * 2 - 1) * 0.015;
     }
-  }, [isPlaying, isLoading, fadeIn]);
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    noise.loop = true;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(400, ctx.currentTime);
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.5, ctx.currentTime);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(masterGain);
+    noise.start();
+
+    gains.push(noiseGain);
+    nodesRef.current = { gains, masterGain };
+    setIsPlaying(true);
+  }, [isPlaying]);
 
   const stop = useCallback(async () => {
-    if (audioRef.current && isPlaying) {
-      await fadeOut(audioRef.current, 2000); // Gentle 2s fade out
+    const ctx = ctxRef.current;
+    const nodes = nodesRef.current;
+    if (!ctx || !nodes) return;
+
+    // Gentle fade out over 2 seconds
+    nodes.masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 2);
+
+    setTimeout(() => {
+      ctx.close();
+      ctxRef.current = null;
+      nodesRef.current = null;
       setIsPlaying(false);
-    }
-  }, [isPlaying, fadeOut]);
+    }, 2200);
+  }, []);
 
   const cleanup = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
+    if (ctxRef.current) {
+      ctxRef.current.close();
+      ctxRef.current = null;
     }
-    if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = null;
-    }
+    nodesRef.current = null;
     setIsPlaying(false);
   }, []);
 
-  return { play, stop, isLoading, isPlaying, cleanup };
+  return { play, stop, isLoading: false, isPlaying, cleanup };
 }
