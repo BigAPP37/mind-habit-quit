@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text } = await req.json();
+    const { text, voiceName = "es-ES-Neural2-A", ssmlGender = "FEMALE" } = await req.json();
     const API_KEY = Deno.env.get("GOOGLE_CLOUD_TTS_API_KEY");
 
     if (!API_KEY) {
@@ -23,6 +23,8 @@ serve(async (req) => {
       throw new Error("Text is required");
     }
 
+    const languageCode = voiceName.substring(0, 5); // e.g. "es-ES"
+
     const response = await fetch(
       `https://texttospeech.googleapis.com/v1/text:synthesize?key=${API_KEY}`,
       {
@@ -31,14 +33,14 @@ serve(async (req) => {
         body: JSON.stringify({
           input: { text },
           voice: {
-            languageCode: "es-ES",
-            name: "es-ES-Neural2-A", // Female, warm, natural-sounding Neural2 voice
-            ssmlGender: "FEMALE",
+            languageCode,
+            name: voiceName,
+            ssmlGender,
           },
           audioConfig: {
             audioEncoding: "MP3",
             speakingRate: 0.85,
-            pitch: -1.0, // Slightly lower pitch for a calming tone
+            pitch: -1.0,
             effectsProfileId: ["headphone-class-device"],
           },
         }),
@@ -58,9 +60,8 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const audioContent = data.audioContent; // base64 encoded MP3
+    const audioContent = data.audioContent;
 
-    // Decode base64 to binary
     const binaryString = atob(audioContent);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {

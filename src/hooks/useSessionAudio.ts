@@ -3,6 +3,22 @@ import { toast } from 'sonner';
 
 const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-tts`;
 
+export interface VoiceOption {
+  id: string;
+  label: string;
+  voiceName: string;
+  ssmlGender: string;
+}
+
+export const VOICE_OPTIONS: VoiceOption[] = [
+  { id: 'female-a', label: 'Femenina suave (Neural2-A)', voiceName: 'es-ES-Neural2-A', ssmlGender: 'FEMALE' },
+  { id: 'female-c', label: 'Femenina cálida (Neural2-C)', voiceName: 'es-ES-Neural2-C', ssmlGender: 'FEMALE' },
+  { id: 'female-e', label: 'Femenina clara (Neural2-E)', voiceName: 'es-ES-Neural2-E', ssmlGender: 'FEMALE' },
+  { id: 'male-b', label: 'Masculina profunda (Neural2-B)', voiceName: 'es-ES-Neural2-B', ssmlGender: 'MALE' },
+  { id: 'male-d', label: 'Masculina serena (Neural2-D)', voiceName: 'es-ES-Neural2-D', ssmlGender: 'MALE' },
+  { id: 'male-f', label: 'Masculina grave (Neural2-F)', voiceName: 'es-ES-Neural2-F', ssmlGender: 'MALE' },
+];
+
 export function useSessionAudio() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -17,7 +33,7 @@ export function useSessionAudio() {
     }
   }, []);
 
-  const play = useCallback(async (text: string) => {
+  const play = useCallback(async (text: string, voice?: VoiceOption) => {
     if (isPlaying) {
       stop();
       return;
@@ -26,6 +42,8 @@ export function useSessionAudio() {
     setIsLoading(true);
 
     try {
+      const selectedVoice = voice || VOICE_OPTIONS[0];
+
       const response = await fetch(TTS_URL, {
         method: 'POST',
         headers: {
@@ -33,7 +51,11 @@ export function useSessionAudio() {
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({
+          text,
+          voiceName: selectedVoice.voiceName,
+          ssmlGender: selectedVoice.ssmlGender,
+        }),
       });
 
       if (!response.ok) {
