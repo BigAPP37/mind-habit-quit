@@ -38,6 +38,10 @@ export default function Onboarding() {
       createdAt: new Date().toISOString(),
     };
     updateProfile(profile);
+    // Save to localStorage synchronously before navigating
+    const raw = localStorage.getItem('rewire-smoke-data');
+    const current = raw ? JSON.parse(raw) : {};
+    localStorage.setItem('rewire-smoke-data', JSON.stringify({ ...current, profile }));
     navigate('/dashboard');
   };
 
