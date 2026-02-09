@@ -11,6 +11,7 @@ export interface VoiceOption {
 
 export const VOICE_OPTIONS: VoiceOption[] = [
   // Voces femeninas ideales para meditación
+  { id: 'alex', label: 'Alex (narrativa)', voiceId: 'wnKyx1zkUEUnfURKiuaP' },
   { id: 'matilda', label: 'Matilda (femenina, cálida y suave)', voiceId: 'XrExE9yKIg1WjnnlVkGX' },
   { id: 'jessica', label: 'Jessica (femenina, gentil)', voiceId: 'cgSgspJ2msm6clMCkdW9' },
   { id: 'laura', label: 'Laura (femenina, serena)', voiceId: 'FGY2WhTYpPnrIDTdsKH5' },
