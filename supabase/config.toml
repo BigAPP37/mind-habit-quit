@@ -2,3 +2,6 @@ project_id = "dlktrfedygdxmaayiihd"
 
 [functions.elevenlabs-tts]
 verify_jwt = false
+
+[functions.google-tts]
+verify_jwt = false
