@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Star, Check, Wind } from 'lucide-react';
+import { ArrowLeft, Star, Check, Wind, Volume2, Square, Loader2 } from 'lucide-react';
 import { allSessions } from '@/data/content';
 import { useAppState } from '@/hooks/useStore';
 import { BreathingCircle } from '@/components/BreathingCircle';
 import { Button } from '@/components/ui/button';
+import { useSessionAudio } from '@/hooks/useSessionAudio';
 
 export default function SessionDetail() {
   const { id } = useParams();
@@ -13,6 +14,11 @@ export default function SessionDetail() {
   const { addSessionCompletion } = useAppState();
   const [completed, setCompleted] = useState(false);
   const [rating, setRating] = useState(0);
+  const { play, stop, isLoading: audioLoading, isPlaying, cleanup } = useSessionAudio();
+
+  useEffect(() => {
+    return () => cleanup();
+  }, [cleanup]);
 
   const session = allSessions.find(s => s.id === id);
   if (!session) return <div className="p-8 text-center text-muted-foreground">Sesión no encontrada.</div>;
@@ -66,8 +72,26 @@ export default function SessionDetail() {
             </div>
           )}
 
-          {/* Script text */}
-          <div className="p-5 rounded-xl bg-card shadow-card">
+          {/* Script text + audio button */}
+          <div className="p-5 rounded-xl bg-card shadow-card space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Guión de la sesión</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full gap-2"
+                onClick={() => isPlaying ? stop() : play(session.scriptText)}
+                disabled={audioLoading}
+              >
+                {audioLoading ? (
+                  <><Loader2 size={14} className="animate-spin" /> Generando...</>
+                ) : isPlaying ? (
+                  <><Square size={14} /> Parar audio</>
+                ) : (
+                  <><Volume2 size={14} /> Escuchar</>
+                )}
+              </Button>
+            </div>
             <p className="text-foreground leading-relaxed text-sm whitespace-pre-line">
               {session.scriptText}
             </p>
