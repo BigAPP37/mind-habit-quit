@@ -1,13 +1,17 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Layout } from '@/components/Layout';
 import { useAppState, DailyCheckin } from '@/hooks/useStore';
-import { triggerOptions, emotionOptions } from '@/data/content';
+import { triggerOptions } from '@/data/content';
 import { Button } from '@/components/ui/button';
-import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Check, Sparkles, Loader2, Bot } from 'lucide-react';
+import { toast } from 'sonner';
+
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/diary-therapist`;
 
 export default function Diary() {
-  const { state, addCheckin } = useAppState();
+  const { state, addCheckin, daysSinceQuit } = useAppState();
   const today = new Date().toISOString().split('T')[0];
   const todayCheckin = state.checkins.find(c => c.date === today);
 
@@ -18,9 +22,13 @@ export default function Diary() {
   const [mood, setMood] = useState(todayCheckin?.mood ?? 5);
   const [sleep, setSleep] = useState(todayCheckin?.sleep ?? 5);
   const [topTrigger, setTopTrigger] = useState(todayCheckin?.topTrigger ?? '');
+  const [notes, setNotes] = useState(todayCheckin?.notes ?? '');
   const [saved, setSaved] = useState(!!todayCheckin);
 
-  // History view
+  // AI therapist state
+  const [aiResponse, setAiResponse] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+
   const [viewMode, setViewMode] = useState<'checkin' | 'history'>(todayCheckin ? 'history' : 'checkin');
 
   const save = () => {
@@ -33,12 +41,79 @@ export default function Diary() {
       mood,
       sleep,
       topTrigger,
-      notes: '',
+      notes,
     };
     addCheckin(checkin);
     setSaved(true);
     setViewMode('history');
   };
+
+  const askTherapist = useCallback(async () => {
+    if (!notes.trim() || notes.trim().length < 10) {
+      toast.error('Escribe al menos unas palabras sobre cómo te sientes.');
+      return;
+    }
+    setAiLoading(true);
+    setAiResponse('');
+
+    try {
+      const resp = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          journalEntry: notes,
+          context: { daysSinceQuit, cravingAvg, mood, stress },
+        }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error || 'Error al conectar con el terapeuta IA');
+      }
+
+      const reader = resp.body?.getReader();
+      if (!reader) throw new Error('No stream');
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let full = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let newlineIdx: number;
+        while ((newlineIdx = buffer.indexOf('\n')) !== -1) {
+          let line = buffer.slice(0, newlineIdx);
+          buffer = buffer.slice(newlineIdx + 1);
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (line.startsWith(':') || line.trim() === '') continue;
+          if (!line.startsWith('data: ')) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === '[DONE]') break;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              full += content;
+              setAiResponse(full);
+            }
+          } catch {
+            buffer = line + '\n' + buffer;
+            break;
+          }
+        }
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || 'Error al obtener respuesta');
+    } finally {
+      setAiLoading(false);
+    }
+  }, [notes, daysSinceQuit, cravingAvg, mood, stress]);
 
   const last7 = state.checkins
     .sort((a, b) => b.date.localeCompare(a.date))
@@ -108,6 +183,57 @@ export default function Diary() {
               </div>
             </div>
 
+            {/* Journal / Free writing */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                ✍️ ¿Cómo te sientes hoy?
+              </label>
+              <Textarea
+                placeholder="Escribe lo que quieras… cómo te sientes, qué te preocupa, qué te ha hecho feliz, cualquier pensamiento sobre tu proceso de dejar de fumar…"
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                className="min-h-[120px] rounded-xl border-border bg-card text-foreground placeholder:text-muted-foreground/60 resize-none"
+              />
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">{notes.length} caracteres</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={askTherapist}
+                  disabled={aiLoading || notes.trim().length < 10}
+                  className="rounded-full gap-2 border-primary/30 text-primary hover:bg-primary/10"
+                >
+                  {aiLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                  Pedir orientación
+                </Button>
+              </div>
+            </div>
+
+            {/* AI Response */}
+            <AnimatePresence>
+              {(aiResponse || aiLoading) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-2"
+                >
+                  <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                    <Bot size={16} />
+                    Tu terapeuta IA
+                  </div>
+                  {aiLoading && !aiResponse && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 size={14} className="animate-spin" /> Analizando…
+                    </div>
+                  )}
+                  {aiResponse && (
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{aiResponse}</p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <Button onClick={save} className="w-full rounded-xl h-12 font-semibold">
               <Check size={18} className="mr-2" /> Guardar check-in
             </Button>
@@ -141,11 +267,15 @@ export default function Diary() {
                     <span>😴 {c.sleep}</span>
                   </div>
                   {c.topTrigger && <p className="text-xs text-muted-foreground mt-1">Disparador: {c.topTrigger}</p>}
+                  {c.notes && (
+                    <p className="text-xs text-muted-foreground mt-2 italic border-t border-border pt-2">
+                      "{c.notes.length > 100 ? c.notes.slice(0, 100) + '…' : c.notes}"
+                    </p>
+                  )}
                 </div>
               ))
             )}
 
-            {/* Simple bar chart */}
             {last7.length > 1 && (
               <div className="p-4 rounded-xl bg-card shadow-card">
                 <p className="text-xs font-medium text-muted-foreground mb-3">Craving últimos días</p>
