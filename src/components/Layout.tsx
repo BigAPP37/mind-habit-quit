@@ -16,15 +16,15 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <main className="flex-1 pb-safe">{children}</main>
-      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-elevated z-50">
-        <div className="flex items-center justify-around max-w-lg mx-auto h-16">
+      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-elevated z-50 safe-bottom">
+        <div className="flex items-center justify-around max-w-lg mx-auto h-16 px-1">
           {navItems.map(({ path, icon: Icon, label }) => {
             const active = pathname === path || pathname.startsWith(path + '/');
             return (
               <Link
                 key={path}
                 to={path}
-                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
+                className={`flex flex-col items-center justify-center gap-0.5 min-w-[3.5rem] py-2 rounded-lg transition-colors ${
                   path === '/craving'
                     ? 'text-emergency'
                     : active
@@ -32,8 +32,8 @@ export function Layout({ children }: { children: ReactNode }) {
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <Icon size={path === '/craving' ? 24 : 20} strokeWidth={active ? 2.5 : 1.8} />
-                <span className={`text-[10px] font-medium ${active ? 'font-semibold' : ''}`}>{label}</span>
+                <Icon size={path === '/craving' ? 24 : 22} strokeWidth={active ? 2.5 : 1.8} />
+                <span className={`text-[11px] leading-tight font-medium ${active ? 'font-semibold' : ''}`}>{label}</span>
               </Link>
             );
           })}
