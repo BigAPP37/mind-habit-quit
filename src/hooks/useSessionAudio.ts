@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -50,30 +50,44 @@ export function useSessionAudio() {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const blobUrlRef = useRef<string | null>(null);
+  const isPlayingRef = useRef(false);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
 
   const stop = useCallback(() => {
+    console.log('[TTS] stop() called');
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
+      audioRef.current.onended = null;
+      audioRef.current.onerror = null;
       audioRef.current.src = '';
-      setIsPlaying(false);
+      audioRef.current = null;
     }
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+    setIsPlaying(false);
+    isPlayingRef.current = false;
   }, []);
 
   const play = useCallback(async (text: string, voice?: VoiceOption) => {
-    if (isPlaying) {
+    // Always stop any current audio first (uses ref to avoid stale closure)
+    if (isPlayingRef.current || audioRef.current) {
+      console.log('[TTS] Stopping previous audio before playing new one');
       stop();
-      return;
     }
 
     // CRITICAL: Create and play Audio immediately in user gesture context
-    // This unlocks audio playback on iOS/Safari before any async work
     const audio = new Audio(SILENT_WAV);
     audio.volume = 1;
     audioRef.current = audio;
 
     try {
-      // Play silent audio to unlock - must happen synchronously in gesture
       await audio.play();
     } catch (e) {
       console.warn('Silent audio unlock failed:', e);
@@ -118,11 +132,6 @@ export function useSessionAudio() {
         throw new Error('La respuesta no es audio válido');
       }
 
-      // Clean up previous blob URL
-      if (blobUrlRef.current) {
-        URL.revokeObjectURL(blobUrlRef.current);
-      }
-
       const audioBlob = await response.blob();
       console.log('[TTS] Audio received, size:', audioBlob.size, 'type:', audioBlob.type);
 
@@ -130,37 +139,48 @@ export function useSessionAudio() {
         throw new Error('Audio recibido está vacío o corrupto');
       }
 
+      // Check if stop was called while we were fetching
+      if (audioRef.current !== audio) {
+        console.log('[TTS] Audio was stopped during fetch, aborting playback');
+        return;
+      }
+
       const audioUrl = URL.createObjectURL(audioBlob);
       blobUrlRef.current = audioUrl;
 
-      // Now set the real audio source on the already-unlocked Audio element
       audio.src = audioUrl;
-      audio.onended = () => setIsPlaying(false);
+      audio.onended = () => {
+        setIsPlaying(false);
+        isPlayingRef.current = false;
+      };
       audio.onerror = (e) => {
         console.error('[TTS] Audio playback error:', e);
         setIsPlaying(false);
+        isPlayingRef.current = false;
         toast.error('Error al reproducir el audio');
       };
 
       await audio.play();
       setIsPlaying(true);
+      isPlayingRef.current = true;
       console.log('[TTS] Playing audio successfully');
     } catch (error) {
       console.error('[TTS] Error:', error);
       toast.error(error instanceof Error ? error.message : 'No se pudo generar el audio');
-      audio.src = '';
+      if (audioRef.current === audio) {
+        audio.src = '';
+        audioRef.current = null;
+      }
       setIsPlaying(false);
+      isPlayingRef.current = false;
     } finally {
       setIsLoading(false);
     }
-  }, [isPlaying, stop]);
+  }, [stop]);
 
   const cleanup = useCallback(() => {
+    console.log('[TTS] cleanup() called');
     stop();
-    if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = null;
-    }
   }, [stop]);
 
   return { play, stop, isLoading, isPlaying, cleanup };
