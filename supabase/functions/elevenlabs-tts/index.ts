@@ -50,7 +50,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("ElevenLabs API error:", response.status, errorText);
+      console.error("ElevenLabs API error:", response.status, errorText, "voiceId:", selectedVoice, "textLength:", text?.length);
       return new Response(
         JSON.stringify({ error: `ElevenLabs API error: ${response.status}` }),
         {
