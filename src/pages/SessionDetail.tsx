@@ -50,6 +50,7 @@ export default function SessionDetail() {
   const [sessionStarted, setSessionStarted] = useState(false);
   const [showEvidence, setShowEvidence] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
   const { play, stop, isLoading: audioLoading, isPlaying, cleanup } = useSessionAudio();
   const { play: playAmbient, stop: stopAmbient, isLoading: ambientLoading, isPlaying: ambientPlaying, cleanup: cleanupAmbient } = useAmbientMusic();
 
@@ -103,6 +104,7 @@ export default function SessionDetail() {
 
   const handleDownload = async () => {
     setDownloading(true);
+    setDownloadProgress(0);
     try {
       const { data: { session: authSession } } = await supabase.auth.getSession();
       const accessToken = authSession?.access_token;
@@ -126,7 +128,40 @@ export default function SessionDetail() {
 
       if (!response.ok) throw new Error(`Error ${response.status}`);
 
-      const blob = await response.blob();
+      const contentLength = response.headers.get('Content-Length');
+      const total = contentLength ? parseInt(contentLength, 10) : 0;
+
+      if (!response.body || !total) {
+        // Fallback: no streaming progress available
+        setDownloadProgress(10);
+        const blob = await response.blob();
+        setDownloadProgress(100);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${session.title.replace(/[^a-zA-Z0-9áéíóúñ ]/g, '')}.mp3`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success('Audio descargado');
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const chunks: BlobPart[] = [];
+      let received = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        received += value.length;
+        setDownloadProgress(Math.min(Math.round((received / total) * 100), 99));
+      }
+
+      setDownloadProgress(100);
+      const blob = new Blob(chunks, { type: 'audio/mpeg' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -141,6 +176,7 @@ export default function SessionDetail() {
       toast.error('No se pudo descargar el audio');
     } finally {
       setDownloading(false);
+      setTimeout(() => setDownloadProgress(0), 1000);
     }
   };
 
@@ -389,16 +425,29 @@ export default function SessionDetail() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="rounded-full gap-2 border-border/60 transition-all duration-300 h-11 px-4"
+                      className="rounded-full gap-2 border-border/60 transition-all duration-300 h-11 px-4 relative overflow-hidden"
                       onClick={handleDownload}
                       disabled={downloading || audioLoading}
                     >
-                      {downloading ? (
-                        <Loader2 size={14} className="animate-spin" />
-                      ) : (
-                        <Download size={14} />
+                      {downloading && downloadProgress > 0 && (
+                        <span
+                          className="absolute inset-0 bg-primary/15 transition-all duration-300 ease-out"
+                          style={{ width: `${downloadProgress}%` }}
+                        />
                       )}
-                      <span className="hidden sm:inline">Descargar</span>
+                      <span className="relative flex items-center gap-2">
+                        {downloading ? (
+                          <>
+                            <Loader2 size={14} className="animate-spin" />
+                            <span className="text-xs tabular-nums">{downloadProgress}%</span>
+                          </>
+                        ) : (
+                          <>
+                            <Download size={14} />
+                            <span className="hidden sm:inline">Descargar</span>
+                          </>
+                        )}
+                      </span>
                     </Button>
                   </div>
 
