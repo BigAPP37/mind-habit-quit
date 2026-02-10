@@ -8,7 +8,7 @@ import { allSessions, Session } from '@/data/content';
 const typeConfig: Record<string, { icon: typeof Wind; label: string; color: string }> = {
   breathing: { icon: Wind, label: 'Respiración', color: 'text-primary' },
   mindfulness: { icon: Brain, label: 'Mindfulness', color: 'text-calm' },
-  urge_surfing: { icon: Waves, label: 'Urge Surfing', color: 'text-accent' },
+  urge_surfing: { icon: Waves, label: 'Surfeo de impulsos', color: 'text-accent' },
   reprogramming: { icon: Sparkles, label: 'Reprogramación', color: 'text-primary' },
 };
 
