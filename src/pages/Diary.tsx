@@ -167,7 +167,7 @@ export default function Diary() {
               </div>
             )}
 
-            <SliderRow label="Craving promedio" value={cravingAvg} onChange={setCravingAvg} emoji="🔥" />
+            <SliderRow label="Ansia promedio" value={cravingAvg} onChange={setCravingAvg} emoji="🔥" />
             <SliderRow label="Estrés" value={stress} onChange={setStress} emoji="😰" />
             <SliderRow label="Ánimo" value={mood} onChange={setMood} emoji="😊" />
             <SliderRow label="Sueño" value={sleep} onChange={setSleep} emoji="😴" />
@@ -278,7 +278,7 @@ export default function Diary() {
 
             {last7.length > 1 && (
               <div className="p-4 rounded-xl bg-card shadow-card">
-                <p className="text-xs font-medium text-muted-foreground mb-3">Craving últimos días</p>
+                <p className="text-xs font-medium text-muted-foreground mb-3">Ansia últimos días</p>
                 <div className="flex items-end gap-1 h-20">
                   {[...last7].reverse().map(c => (
                     <div key={c.date} className="flex-1 flex flex-col items-center gap-1">
