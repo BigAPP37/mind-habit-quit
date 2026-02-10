@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Flame, BookOpen, CalendarDays, Target, Settings } from 'lucide-react';
+import { Home, Flame, BookOpen, CalendarDays, Target } from 'lucide-react';
 
 const navItems = [
   { path: '/dashboard', icon: Home, label: 'Inicio' },
