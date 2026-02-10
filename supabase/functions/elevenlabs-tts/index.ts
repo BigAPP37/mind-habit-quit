@@ -7,6 +7,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Generate a simple hash for cache key
+async function hashText(text: string, voiceId: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(`${voiceId}:${text}`);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -21,15 +30,20 @@ serve(async (req) => {
       });
     }
 
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data, error: authError } = await supabaseClient.auth.getClaims(token);
-    if (authError || !data?.claims) {
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      console.error("Auth error:", authError?.message);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -59,14 +73,32 @@ serve(async (req) => {
       });
     }
 
-    const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
+    const selectedVoice = voiceId || "FGY2WhTYpPnrIDTdsKH5";
+    const cacheKey = await hashText(text, selectedVoice);
+    const cachePath = `${cacheKey}.mp3`;
 
+    // Check cache first
+    const { data: cachedFile } = await supabaseAdmin.storage
+      .from("tts-cache")
+      .download(cachePath);
+
+    if (cachedFile) {
+      console.log("Cache HIT for:", cacheKey.slice(0, 12));
+      const audioBuffer = await cachedFile.arrayBuffer();
+      return new Response(audioBuffer, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "audio/mpeg",
+        },
+      });
+    }
+
+    console.log("Cache MISS, generating TTS for voice:", selectedVoice, "textLen:", text.length);
+
+    const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
     if (!ELEVENLABS_API_KEY) {
       throw new Error("ELEVENLABS_API_KEY is not configured");
     }
-
-    // Use Laura voice (calm, soothing female Spanish voice) by default
-    const selectedVoice = voiceId || "FGY2WhTYpPnrIDTdsKH5";
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoice}?output_format=mp3_44100_128`,
@@ -92,7 +124,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("ElevenLabs API error:", response.status, errorText, "voiceId:", selectedVoice, "textLength:", text?.length);
+      console.error("ElevenLabs API error:", response.status, errorText);
       return new Response(
         JSON.stringify({ error: `ElevenLabs API error: ${response.status}` }),
         {
@@ -103,6 +135,19 @@ serve(async (req) => {
     }
 
     const audioBuffer = await response.arrayBuffer();
+    console.log("TTS generated, size:", audioBuffer.byteLength, "- caching...");
+
+    // Cache the audio (fire and forget, don't block response)
+    supabaseAdmin.storage
+      .from("tts-cache")
+      .upload(cachePath, audioBuffer, {
+        contentType: "audio/mpeg",
+        upsert: false,
+      })
+      .then(({ error }) => {
+        if (error) console.error("Cache upload error:", error.message);
+        else console.log("Cached:", cacheKey.slice(0, 12));
+      });
 
     return new Response(audioBuffer, {
       headers: {
