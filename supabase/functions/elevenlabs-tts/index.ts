@@ -89,6 +89,7 @@ serve(async (req) => {
         headers: {
           ...corsHeaders,
           "Content-Type": "audio/mpeg",
+          "Content-Length": audioBuffer.byteLength.toString(),
         },
       });
     }
@@ -153,6 +154,7 @@ serve(async (req) => {
       headers: {
         ...corsHeaders,
         "Content-Type": "audio/mpeg",
+        "Content-Length": audioBuffer.byteLength.toString(),
       },
     });
   } catch (e) {
