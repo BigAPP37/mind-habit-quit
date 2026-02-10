@@ -8,6 +8,8 @@ export interface UserProfile {
   dependencyLevel: 'baja' | 'media' | 'alta';
   mainReasons: string[];
   triggers: string[];
+  packPrice: number;
+  cigsPerPack: number;
   onboardingComplete: boolean;
   createdAt: string;
 }
@@ -114,7 +116,9 @@ export function useAppState() {
     : 0;
 
   const cigsNotSmoked = daysSinceQuit * (state.profile?.baselineCigsPerDay || 0);
-  const moneySaved = (cigsNotSmoked / 20) * 5.5;
+  const cigsPerPack = state.profile?.cigsPerPack || 20;
+  const packPrice = state.profile?.packPrice || 5.50;
+  const moneySaved = (cigsNotSmoked / cigsPerPack) * packPrice;
   const minutesSaved = cigsNotSmoked * 7; // ~7 min per cigarette
 
   return {

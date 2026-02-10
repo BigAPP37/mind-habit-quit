@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          baseline_cigs_per_day: number
+          cigs_per_pack: number
+          created_at: string
+          dependency_level: string
+          goal_type: string
+          id: string
+          main_reasons: string[] | null
+          name: string | null
+          onboarding_complete: boolean
+          pack_price: number
+          quit_date: string | null
+          triggers: string[] | null
+          tutorial_complete: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          baseline_cigs_per_day?: number
+          cigs_per_pack?: number
+          created_at?: string
+          dependency_level?: string
+          goal_type?: string
+          id?: string
+          main_reasons?: string[] | null
+          name?: string | null
+          onboarding_complete?: boolean
+          pack_price?: number
+          quit_date?: string | null
+          triggers?: string[] | null
+          tutorial_complete?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          baseline_cigs_per_day?: number
+          cigs_per_pack?: number
+          created_at?: string
+          dependency_level?: string
+          goal_type?: string
+          id?: string
+          main_reasons?: string[] | null
+          name?: string | null
+          onboarding_complete?: boolean
+          pack_price?: number
+          quit_date?: string | null
+          triggers?: string[] | null
+          tutorial_complete?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

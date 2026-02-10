@@ -38,7 +38,7 @@ export default function Landing() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button asChild size="lg" className="rounded-full px-8 font-semibold">
-                <Link to="/onboarding">
+                <Link to="/auth">
                   Empezar gratis
                   <ArrowRight size={18} className="ml-2" />
                 </Link>
@@ -114,7 +114,7 @@ export default function Landing() {
       {/* CTA */}
       <section className="max-w-lg mx-auto px-6 pb-16 text-center">
         <Button asChild size="lg" className="rounded-full px-10 font-semibold">
-          <Link to="/onboarding">
+          <Link to="/auth">
             Empezar ahora
             <ArrowRight size={18} className="ml-2" />
           </Link>
