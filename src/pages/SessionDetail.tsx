@@ -293,7 +293,7 @@ export default function SessionDetail() {
                   </p>
 
                   {/* Voice selector + play button */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <Select
                       value={selectedVoice.id}
                       onValueChange={(val) => {
@@ -304,7 +304,7 @@ export default function SessionDetail() {
                         }
                       }}
                     >
-                      <SelectTrigger className="flex-1 h-9 text-xs rounded-full border-border/60">
+                      <SelectTrigger className="w-full sm:flex-1 h-10 text-xs rounded-full border-border/60">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -319,7 +319,7 @@ export default function SessionDetail() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="rounded-full gap-2 shrink-0 border-border/60 transition-all duration-300"
+                      className="rounded-full gap-2 shrink-0 border-border/60 transition-all duration-300 h-10"
                       onClick={() => isPlaying ? stop() : play(session.scriptText, selectedVoice)}
                       disabled={audioLoading}
                     >
