@@ -46,8 +46,8 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (text.length > 500) {
-      return new Response(JSON.stringify({ error: "Text must be 500 characters or less" }), {
+    if (text.length > 5000) {
+      return new Response(JSON.stringify({ error: "Text must be 5000 characters or less" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
