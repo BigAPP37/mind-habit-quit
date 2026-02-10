@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Star, Check, Volume2, Square, Loader2, Music, Play } from 'lucide-react';
-import { allSessions } from '@/data/content';
+import { ArrowLeft, Star, Check, Volume2, Square, Loader2, Music, Play, FlaskConical, ChevronDown, ExternalLink } from 'lucide-react';
+import { allSessions, scientificEvidence } from '@/data/content';
 import { useAppState } from '@/hooks/useStore';
 import { BreathingCircle } from '@/components/BreathingCircle';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 const fadeUp = {
   initial: { opacity: 0, y: 20 },
@@ -29,7 +34,7 @@ const stagger = {
 const typeLabels: Record<string, string> = {
   breathing: 'Respiración',
   mindfulness: 'Mindfulness',
-  urge_surfing: 'Urge Surfing',
+  urge_surfing: 'Surfeo de impulsos',
   reprogramming: 'Reprogramación',
 };
 
@@ -41,6 +46,7 @@ export default function SessionDetail() {
   const [rating, setRating] = useState(0);
   const [selectedVoice, setSelectedVoice] = useState<VoiceOption>(getSavedVoice);
   const [sessionStarted, setSessionStarted] = useState(false);
+  const [showEvidence, setShowEvidence] = useState(false);
   const { play, stop, isLoading: audioLoading, isPlaying, cleanup } = useSessionAudio();
   const { play: playAmbient, stop: stopAmbient, isLoading: ambientLoading, isPlaying: ambientPlaying, cleanup: cleanupAmbient } = useAmbientMusic();
 
@@ -54,6 +60,7 @@ export default function SessionDetail() {
   const session = allSessions.find(s => s.id === id);
   if (!session) return <div className="p-8 text-center text-muted-foreground">Sesión no encontrada.</div>;
 
+  const evidence = scientificEvidence.find(e => e.type === session.type);
   const isBreathing = session.type === 'breathing';
   const pattern = session.title.includes('4-4-4-4') ? '4-4-4-4' as const :
                   session.title.includes('4-7-8') ? '4-7-8' as const :
@@ -122,6 +129,72 @@ export default function SessionDetail() {
               ))}
             </div>
           </motion.div>
+
+          {/* Evidencia científica (colapsable) */}
+          {evidence && (
+            <motion.div variants={fadeUp} transition={{ duration: 0.5, delay: 0.15 }}>
+              <Collapsible open={showEvidence} onOpenChange={setShowEvidence}>
+                <CollapsibleTrigger asChild>
+                  <button className="flex items-center gap-2 w-full p-3 rounded-xl bg-secondary/60 hover:bg-secondary/80 transition-colors text-left group">
+                    <FlaskConical size={16} className="text-primary flex-shrink-0" />
+                    <span className="text-sm font-medium text-foreground flex-1">
+                      ¿Por qué funciona? Evidencia científica
+                    </span>
+                    <ChevronDown
+                      size={16}
+                      className={`text-muted-foreground transition-transform duration-300 ${showEvidence ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="mt-2 p-4 rounded-xl bg-card border border-border/50 space-y-4"
+                  >
+                    {/* Explicación */}
+                    <p className="text-sm text-foreground/85 leading-relaxed">
+                      {evidence.explanation}
+                    </p>
+
+                    {/* Estudios */}
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold text-primary uppercase tracking-wider">
+                        Estudios de referencia
+                      </p>
+                      {evidence.references.map((ref, idx) => (
+                        <div
+                          key={idx}
+                          className="p-3 rounded-lg bg-secondary/40 border border-border/30 space-y-1.5"
+                        >
+                          <p className="text-xs font-semibold text-foreground leading-snug">
+                            {ref.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {ref.authors} — <em>{ref.journal}</em> ({ref.year})
+                          </p>
+                          <p className="text-xs text-foreground/80 leading-relaxed">
+                            📊 {ref.finding}
+                          </p>
+                          {ref.doi && (
+                            <a
+                              href={`https://doi.org/${ref.doi}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                            >
+                              <ExternalLink size={10} /> Ver estudio
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                </CollapsibleContent>
+              </Collapsible>
+            </motion.div>
+          )}
 
           {/* Botón de iniciar sesión (antes de empezar) */}
           <AnimatePresence mode="wait">
