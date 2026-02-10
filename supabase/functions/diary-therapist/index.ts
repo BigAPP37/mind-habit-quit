@@ -33,7 +33,31 @@ serve(async (req) => {
       });
     }
 
-    const { journalEntry, context } = await req.json();
+    const body = await req.json();
+    const journalEntry = typeof body.journalEntry === "string" ? body.journalEntry.trim() : "";
+    const context = body.context && typeof body.context === "object" ? body.context : null;
+
+    if (!journalEntry || journalEntry.length < 10) {
+      return new Response(JSON.stringify({ error: "El texto debe tener al menos 10 caracteres." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (journalEntry.length > 2000) {
+      return new Response(JSON.stringify({ error: "El texto no puede superar los 2000 caracteres." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Sanitize context values
+    const safeContext = context ? {
+      daysSinceQuit: typeof context.daysSinceQuit === "number" ? Math.max(0, Math.floor(context.daysSinceQuit)) : null,
+      cravingAvg: typeof context.cravingAvg === "number" ? Math.min(10, Math.max(0, context.cravingAvg)) : null,
+      mood: typeof context.mood === "number" ? Math.min(10, Math.max(0, context.mood)) : null,
+      stress: typeof context.stress === "number" ? Math.min(10, Math.max(0, context.stress)) : null,
+    } : null;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -53,10 +77,10 @@ Reglas:
 - Basa tus respuestas en TCC (Terapia Cognitivo-Conductual) y Entrevista Motivacional.
 
 Contexto del usuario:
-${context ? `- Día sin fumar: ${context.daysSinceQuit || 'desconocido'}
-- Craving promedio hoy: ${context.cravingAvg || 'no registrado'}/10
-- Estado de ánimo: ${context.mood || 'no registrado'}/10
-- Estrés: ${context.stress || 'no registrado'}/10` : 'Sin contexto adicional disponible.'}`;
+${safeContext ? `- Día sin fumar: ${safeContext.daysSinceQuit ?? 'desconocido'}
+- Ansia promedio hoy: ${safeContext.cravingAvg ?? 'no registrado'}/10
+- Estado de ánimo: ${safeContext.mood ?? 'no registrado'}/10
+- Estrés: ${safeContext.stress ?? 'no registrado'}/10` : 'Sin contexto adicional disponible.'}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

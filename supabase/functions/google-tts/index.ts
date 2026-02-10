@@ -36,15 +36,40 @@ serve(async (req) => {
       });
     }
 
-    const { text, voiceName = "es-ES-Neural2-A", ssmlGender = "FEMALE" } = await req.json();
+    const body = await req.json();
+    const text = typeof body.text === "string" ? body.text.trim() : "";
+    const voiceName = typeof body.voiceName === "string" ? body.voiceName.trim() : "es-ES-Neural2-A";
+    const ssmlGender = typeof body.ssmlGender === "string" ? body.ssmlGender.trim() : "FEMALE";
+
+    if (!text || text.length === 0) {
+      return new Response(JSON.stringify({ error: "Text is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (text.length > 500) {
+      return new Response(JSON.stringify({ error: "Text must be 500 characters or less" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!/^[a-z]{2}-[A-Z]{2}-[\w-]+$/.test(voiceName)) {
+      return new Response(JSON.stringify({ error: "Invalid voice name format" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!["MALE", "FEMALE", "NEUTRAL"].includes(ssmlGender)) {
+      return new Response(JSON.stringify({ error: "Invalid gender value" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const API_KEY = Deno.env.get("GOOGLE_CLOUD_TTS_API_KEY");
 
     if (!API_KEY) {
       throw new Error("GOOGLE_CLOUD_TTS_API_KEY is not configured");
-    }
-
-    if (!text || text.length === 0) {
-      throw new Error("Text is required");
     }
 
     const languageCode = voiceName.substring(0, 5); // e.g. "es-ES"
