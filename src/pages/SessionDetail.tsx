@@ -500,6 +500,49 @@ export default function SessionDetail() {
           </AnimatePresence>
         </motion.div>
       </div>
+
+      {/* Floating audio control bar */}
+      <AnimatePresence>
+        {sessionStarted && (isPlaying || ambientPlaying) && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-full bg-card/95 backdrop-blur-md border border-border shadow-lg"
+          >
+            {isPlaying && (
+              <button
+                onClick={stop}
+                className="flex items-center gap-2 text-sm font-medium text-foreground min-h-[44px] px-3 rounded-full hover:bg-secondary/60 transition-colors"
+              >
+                <Square size={14} className="text-primary" />
+                Parar voz
+              </button>
+            )}
+            {isPlaying && ambientPlaying && (
+              <div className="w-px h-5 bg-border" />
+            )}
+            {ambientPlaying && (
+              <button
+                onClick={() => stopAmbient()}
+                className="flex items-center gap-2 text-sm font-medium text-foreground min-h-[44px] px-3 rounded-full hover:bg-secondary/60 transition-colors"
+              >
+                <Music size={14} className="text-primary animate-pulse" />
+                Parar música
+              </button>
+            )}
+            <div className="w-px h-5 bg-border" />
+            <button
+              onClick={stopAllAudio}
+              className="flex items-center gap-2 text-sm font-medium text-destructive min-h-[44px] px-3 rounded-full hover:bg-destructive/10 transition-colors"
+            >
+              <Square size={14} />
+              Parar todo
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
