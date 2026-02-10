@@ -37,7 +37,6 @@ export default function Dashboard() {
       navigate('/onboarding');
       return;
     }
-    // Show tutorial on first visit
     const tutorialDone = localStorage.getItem('rewire-tutorial-done');
     if (!tutorialDone) {
       setShowTutorial(true);
@@ -63,21 +62,21 @@ export default function Dashboard() {
   return (
     <Layout>
       {showTutorial && <InteractiveTutorial onComplete={handleTutorialComplete} />}
-      <div className="max-w-lg mx-auto px-4 pt-6 pb-4 space-y-5">
+      <div className="max-w-lg mx-auto px-4 pt-4 sm:pt-6 pb-4 space-y-4 sm:space-y-5">
         {/* Header with settings */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between">
           <div>
             <p className="text-muted-foreground text-sm">Hola, {profile.name || 'compañero'}</p>
-            <h1 className="text-2xl font-serif font-bold text-foreground">Tu día {daysSinceQuit + 1}</h1>
+            <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground">Tu día {daysSinceQuit + 1}</h1>
           </div>
-          <Link to="/settings" className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground">
+          <Link to="/settings" className="p-2.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground min-w-[44px] min-h-[44px] flex items-center justify-center">
             <SettingsIcon size={20} />
           </Link>
         </motion.div>
 
         {/* Daily message */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="p-4 rounded-xl bg-secondary border border-border">
+          className="p-3.5 sm:p-4 rounded-xl bg-secondary border border-border">
           <p className="text-sm text-foreground italic leading-relaxed">"{todayMessage.text}"</p>
         </motion.div>
 
@@ -92,13 +91,13 @@ export default function Dashboard() {
         </motion.div>
 
         {/* Stats grid */}
-        <div data-tutorial="stats" className="grid grid-cols-2 gap-3">
+        <div data-tutorial="stats" className="grid grid-cols-2 gap-2.5 sm:gap-3">
           {stats.map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.05 }}
               className="p-3 rounded-xl bg-card shadow-card">
               <s.icon size={18} className={s.color} />
-              <p className="text-xl font-bold text-foreground mt-1 font-serif">{s.value}</p>
-              <p className="text-xs text-muted-foreground">{s.label}</p>
+              <p className="text-lg sm:text-xl font-bold text-foreground mt-1 font-serif">{s.value}</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">{s.label}</p>
             </motion.div>
           ))}
         </div>
@@ -111,7 +110,7 @@ export default function Dashboard() {
         {/* Quick check-in */}
         {!todayCheckin && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Button asChild variant="outline" className="w-full rounded-xl">
+            <Button asChild variant="outline" className="w-full rounded-xl h-12">
               <Link to="/diary">
                 <SmilePlus size={18} className="mr-2" />
                 Check-in del día (10s)
@@ -125,7 +124,7 @@ export default function Dashboard() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
             <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-2">Sesión sugerida</p>
             <Link to={`/sessions/${suggestedSession.id}`}
-              className="flex items-center gap-3 p-3 rounded-xl bg-card shadow-card hover:shadow-elevated transition-shadow">
+              className="flex items-center gap-3 p-3 rounded-xl bg-card shadow-card hover:shadow-elevated transition-shadow min-h-[56px]">
               <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
                 {suggestedSession.type === 'breathing' ? <Wind size={18} className="text-primary" /> : <BookOpen size={18} className="text-primary" />}
               </div>
@@ -139,7 +138,7 @@ export default function Dashboard() {
 
         {/* Science link */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.48 }}>
-          <Link to="/science" className="flex items-center gap-3 p-3 rounded-xl bg-card shadow-card hover:shadow-elevated transition-shadow">
+          <Link to="/science" className="flex items-center gap-3 p-3 rounded-xl bg-card shadow-card hover:shadow-elevated transition-shadow min-h-[56px]">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
               <Beaker size={18} className="text-primary" />
             </div>
@@ -159,7 +158,7 @@ export default function Dashboard() {
               '📝 Registra tu estado de ánimo',
               '💧 Bebe un vaso de agua extra',
             ].map((action, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-card shadow-card">
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-card shadow-card min-h-[48px]">
                 <div className="w-5 h-5 rounded-full border-2 border-border flex-shrink-0" />
                 <p className="text-sm text-foreground">{action}</p>
               </div>

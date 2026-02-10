@@ -26,7 +26,6 @@ export default function Diary() {
   const [notes, setNotes] = useState(todayCheckin?.notes ?? '');
   const [saved, setSaved] = useState(!!todayCheckin);
 
-  // AI therapist state
   const [aiResponse, setAiResponse] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
 
@@ -135,36 +134,36 @@ export default function Diary() {
         <span className="text-muted-foreground">{emoji} {value}/10</span>
       </div>
       <input type="range" min={0} max={10} value={value} onChange={e => onChange(Number(e.target.value))}
-        className="w-full mt-1 accent-primary" />
+        className="w-full mt-1 accent-primary h-2" />
     </div>
   );
 
   return (
     <Layout>
-      <div className="max-w-lg mx-auto px-4 pt-6 pb-4 space-y-5">
+      <div className="max-w-lg mx-auto px-4 pt-4 sm:pt-6 pb-4 space-y-4 sm:space-y-5">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-serif font-bold text-foreground">Diario</h1>
+          <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground">Diario</h1>
           <div className="flex gap-1">
             <button onClick={() => setViewMode('checkin')}
-              className={`px-3 py-1 rounded-md text-xs font-medium ${viewMode === 'checkin' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium min-h-[36px] ${viewMode === 'checkin' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}
             >Check-in</button>
             <button onClick={() => setViewMode('history')}
-              className={`px-3 py-1 rounded-md text-xs font-medium ${viewMode === 'history' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium min-h-[36px] ${viewMode === 'history' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}
             >Historial</button>
           </div>
         </div>
 
         {viewMode === 'checkin' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 sm:space-y-5">
             <p className="text-sm text-muted-foreground">Check-in rápido del día · {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
 
             {/* Smoked? */}
-            <div className="flex gap-3">
+            <div className="flex gap-2.5 sm:gap-3">
               <button onClick={() => { setSmoked(false); setCigsCount(0); }}
-                className={`flex-1 p-3 rounded-xl border-2 text-center text-sm font-medium transition-all ${!smoked ? 'border-success bg-success/10 text-success' : 'border-border text-muted-foreground'}`}
+                className={`flex-1 p-3 rounded-xl border-2 text-center text-sm font-medium transition-all min-h-[52px] ${!smoked ? 'border-success bg-success/10 text-success' : 'border-border text-muted-foreground'}`}
               >🎉 No fumé</button>
               <button onClick={() => setSmoked(true)}
-                className={`flex-1 p-3 rounded-xl border-2 text-center text-sm font-medium transition-all ${smoked ? 'border-emergency bg-emergency/10 text-emergency' : 'border-border text-muted-foreground'}`}
+                className={`flex-1 p-3 rounded-xl border-2 text-center text-sm font-medium transition-all min-h-[52px] ${smoked ? 'border-emergency bg-emergency/10 text-emergency' : 'border-border text-muted-foreground'}`}
               >Fumé</button>
             </div>
 
@@ -172,7 +171,7 @@ export default function Diary() {
               <div>
                 <label className="text-sm font-medium text-foreground">¿Cuántos? {cigsCount}</label>
                 <input type="range" min={1} max={40} value={cigsCount} onChange={e => setCigsCount(Number(e.target.value))}
-                  className="w-full mt-1 accent-emergency" />
+                  className="w-full mt-1 accent-emergency h-2" />
               </div>
             )}
 
@@ -186,34 +185,34 @@ export default function Diary() {
               <div className="flex flex-wrap gap-2">
                 {triggerOptions.slice(0, 8).map(t => (
                   <button key={t} onClick={() => setTopTrigger(t)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${topTrigger === t ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground'}`}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all min-h-[36px] ${topTrigger === t ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground'}`}
                   >{t}</button>
                 ))}
               </div>
             </div>
 
-            {/* Journal / Free writing */}
+            {/* Journal */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground flex items-center gap-2">
                 ✍️ ¿Cómo te sientes hoy?
               </label>
               <Textarea
-                placeholder="Escribe lo que quieras… cómo te sientes, qué te preocupa, qué te ha hecho feliz, cualquier pensamiento sobre tu proceso de dejar de fumar…"
+                placeholder="Escribe lo que quieras… cómo te sientes, qué te preocupa, cualquier pensamiento…"
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
-                className="min-h-[120px] rounded-xl border-border bg-card text-foreground placeholder:text-muted-foreground/60 resize-none"
+                className="min-h-[100px] sm:min-h-[120px] rounded-xl border-border bg-card text-foreground placeholder:text-muted-foreground/60 resize-none text-sm"
               />
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">{notes.length} caracteres</span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs text-muted-foreground">{notes.length} car.</span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={askTherapist}
                   disabled={aiLoading || notes.trim().length < 10}
-                  className="rounded-full gap-2 border-primary/30 text-primary hover:bg-primary/10"
+                  className="rounded-full gap-2 border-primary/30 text-primary hover:bg-primary/10 h-10"
                 >
                   {aiLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                  Pedir orientación
+                  Orientación
                 </Button>
               </div>
             </div>
@@ -225,7 +224,7 @@ export default function Diary() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-2"
+                  className="p-3.5 sm:p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-2"
                 >
                   <div className="flex items-center gap-2 text-sm font-medium text-primary">
                     <Bot size={16} />
@@ -269,7 +268,7 @@ export default function Diary() {
                       {c.smoked ? `${c.cigsCount} cig` : 'Sin fumar ✓'}
                     </span>
                   </div>
-                  <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                  <div className="flex gap-3 sm:gap-4 mt-2 text-xs text-muted-foreground">
                     <span>🔥 {c.cravingAvg}</span>
                     <span>😰 {c.stress}</span>
                     <span>😊 {c.mood}</span>

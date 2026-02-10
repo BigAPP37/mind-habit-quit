@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Star, Check, Volume2, Square, Loader2, Music, Play, FlaskConical, ChevronDown, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Star, Check, Volume2, Square, Loader2, Music, Play, FlaskConical, ChevronDown, ExternalLink, Download } from 'lucide-react';
 import { allSessions, scientificEvidence } from '@/data/content';
 import { useAppState } from '@/hooks/useStore';
 import { BreathingCircle } from '@/components/BreathingCircle';
 import { Button } from '@/components/ui/button';
 import { useSessionAudio, VOICE_OPTIONS, VoiceOption, getSavedVoice, saveVoicePreference } from '@/hooks/useSessionAudio';
 import { useAmbientMusic } from '@/hooks/useAmbientMusic';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Select,
   SelectContent,
@@ -47,15 +49,27 @@ export default function SessionDetail() {
   const [selectedVoice, setSelectedVoice] = useState<VoiceOption>(getSavedVoice);
   const [sessionStarted, setSessionStarted] = useState(false);
   const [showEvidence, setShowEvidence] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const { play, stop, isLoading: audioLoading, isPlaying, cleanup } = useSessionAudio();
   const { play: playAmbient, stop: stopAmbient, isLoading: ambientLoading, isPlaying: ambientPlaying, cleanup: cleanupAmbient } = useAmbientMusic();
 
+  // Stop ALL audio on unmount (navigation away)
   useEffect(() => {
     return () => {
       cleanup();
       cleanupAmbient();
     };
   }, [cleanup, cleanupAmbient]);
+
+  const stopAllAudio = useCallback(() => {
+    stop();
+    cleanupAmbient();
+  }, [stop, cleanupAmbient]);
+
+  const handleGoBack = useCallback(() => {
+    stopAllAudio();
+    navigate(-1);
+  }, [stopAllAudio, navigate]);
 
   const session = allSessions.find(s => s.id === id);
   if (!session) return <div className="p-8 text-center text-muted-foreground">Sesión no encontrada.</div>;
@@ -87,13 +101,56 @@ export default function SessionDetail() {
     });
   };
 
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const accessToken = authSession?.access_token;
+      if (!accessToken) {
+        toast.error('Inicia sesión para descargar audio.');
+        return;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          text: session.scriptText,
+          voiceId: selectedVoice.voiceId,
+        }),
+      });
+
+      if (!response.ok) throw new Error(`Error ${response.status}`);
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${session.title.replace(/[^a-zA-Z0-9áéíóúñ ]/g, '')}.mp3`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('Audio descargado');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('No se pudo descargar el audio');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-lg mx-auto px-4 pt-4 pb-8">
-        {/* Header suave */}
+      <div className="max-w-lg mx-auto px-4 pt-4 pb-24">
+        {/* Header */}
         <motion.button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-muted-foreground text-sm mb-6 hover:text-foreground transition-colors duration-300"
+          onClick={handleGoBack}
+          className="flex items-center gap-2 text-muted-foreground text-sm mb-6 hover:text-foreground transition-colors duration-300 min-h-[44px]"
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -107,7 +164,7 @@ export default function SessionDetail() {
           animate="animate"
           className="space-y-6"
         >
-          {/* Cabecera de sesión */}
+          {/* Session header */}
           <motion.div variants={fadeUp} transition={{ duration: 0.5, ease: 'easeOut' }}>
             <p className="text-xs text-primary font-medium uppercase tracking-widest">
               {typeLabels[session.type] || session.type} · {session.durationMinutes} min
@@ -130,12 +187,12 @@ export default function SessionDetail() {
             </div>
           </motion.div>
 
-          {/* Evidencia científica (colapsable) */}
+          {/* Scientific evidence */}
           {evidence && (
             <motion.div variants={fadeUp} transition={{ duration: 0.5, delay: 0.15 }}>
               <Collapsible open={showEvidence} onOpenChange={setShowEvidence}>
                 <CollapsibleTrigger asChild>
-                  <button className="flex items-center gap-2 w-full p-3 rounded-xl bg-secondary/60 hover:bg-secondary/80 transition-colors text-left group">
+                  <button className="flex items-center gap-2 w-full p-3 rounded-xl bg-secondary/60 hover:bg-secondary/80 transition-colors text-left group min-h-[44px]">
                     <FlaskConical size={16} className="text-primary flex-shrink-0" />
                     <span className="text-sm font-medium text-foreground flex-1">
                       ¿Por qué funciona? Evidencia científica
@@ -153,12 +210,9 @@ export default function SessionDetail() {
                     transition={{ duration: 0.3 }}
                     className="mt-2 p-4 rounded-xl bg-card border border-border/50 space-y-4"
                   >
-                    {/* Explicación */}
                     <p className="text-sm text-foreground/85 leading-relaxed">
                       {evidence.explanation}
                     </p>
-
-                    {/* Estudios */}
                     <div className="space-y-3">
                       <p className="text-xs font-semibold text-primary uppercase tracking-wider">
                         Estudios de referencia
@@ -196,7 +250,7 @@ export default function SessionDetail() {
             </motion.div>
           )}
 
-          {/* Botón de iniciar sesión (antes de empezar) */}
+          {/* Start button */}
           <AnimatePresence mode="wait">
             {!sessionStarted && (
               <motion.div
@@ -233,7 +287,7 @@ export default function SessionDetail() {
             )}
           </AnimatePresence>
 
-          {/* Contenido de sesión (después de empezar) */}
+          {/* Session content */}
           <AnimatePresence mode="wait">
             {sessionStarted && (
               <motion.div
@@ -244,7 +298,7 @@ export default function SessionDetail() {
                 transition={{ duration: 0.6, ease: 'easeOut' }}
                 className="space-y-6"
               >
-                {/* Indicador de música ambiental */}
+                {/* Ambient music indicator */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -257,7 +311,7 @@ export default function SessionDetail() {
                       <span>Música ambiental</span>
                       <button
                         onClick={() => stopAmbient()}
-                        className="ml-1 opacity-60 hover:opacity-100 transition-opacity"
+                        className="ml-1 opacity-60 hover:opacity-100 transition-opacity min-w-[24px] min-h-[24px] flex items-center justify-center"
                       >
                         <Square size={10} />
                       </button>
@@ -286,40 +340,41 @@ export default function SessionDetail() {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 }}
-                  className="p-6 rounded-2xl bg-card shadow-[var(--shadow-card)] space-y-4 border border-border/50"
+                  className="p-4 sm:p-6 rounded-2xl bg-card shadow-[var(--shadow-card)] space-y-4 border border-border/50"
                 >
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
                     Guión de la sesión
                   </p>
 
-                  {/* Voice selector + play button */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <Select
-                      value={selectedVoice.id}
-                      onValueChange={(val) => {
-                        const voice = VOICE_OPTIONS.find(v => v.id === val);
-                        if (voice) {
-                          setSelectedVoice(voice);
-                          saveVoicePreference(voice);
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="w-full sm:flex-1 h-10 text-xs rounded-full border-border/60">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {VOICE_OPTIONS.map(v => (
-                          <SelectItem key={v.id} value={v.id} className="text-xs">
-                            {v.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  {/* Voice selector */}
+                  <Select
+                    value={selectedVoice.id}
+                    onValueChange={(val) => {
+                      const voice = VOICE_OPTIONS.find(v => v.id === val);
+                      if (voice) {
+                        setSelectedVoice(voice);
+                        saveVoicePreference(voice);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full h-11 text-xs rounded-full border-border/60">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {VOICE_OPTIONS.map(v => (
+                        <SelectItem key={v.id} value={v.id} className="text-xs">
+                          {v.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
+                  {/* Play + Download buttons */}
+                  <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="rounded-full gap-2 shrink-0 border-border/60 transition-all duration-300 h-10"
+                      className="flex-1 rounded-full gap-2 border-border/60 transition-all duration-300 h-11"
                       onClick={() => isPlaying ? stop() : play(session.scriptText, selectedVoice)}
                       disabled={audioLoading}
                     >
@@ -331,6 +386,20 @@ export default function SessionDetail() {
                         <><Volume2 size={14} /> Escuchar</>
                       )}
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full gap-2 border-border/60 transition-all duration-300 h-11 px-4"
+                      onClick={handleDownload}
+                      disabled={downloading || audioLoading}
+                    >
+                      {downloading ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Download size={14} />
+                      )}
+                      <span className="hidden sm:inline">Descargar</span>
+                    </Button>
                   </div>
 
                   <p className="text-foreground/90 leading-relaxed text-sm whitespace-pre-line">
@@ -338,7 +407,7 @@ export default function SessionDetail() {
                   </p>
                 </motion.div>
 
-                {/* Completar / Rating */}
+                {/* Complete / Rating */}
                 <AnimatePresence mode="wait">
                   {!completed ? (
                     <motion.div
@@ -390,7 +459,10 @@ export default function SessionDetail() {
                           >
                             <p className="text-sm text-muted-foreground">¡Registrado! Sigue así.</p>
                             <Button
-                              onClick={() => navigate('/sessions')}
+                              onClick={() => {
+                                stopAllAudio();
+                                navigate('/sessions');
+                              }}
                               variant="outline"
                               className="mt-3 rounded-full transition-all duration-300"
                             >
