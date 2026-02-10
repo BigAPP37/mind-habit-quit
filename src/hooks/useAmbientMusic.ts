@@ -7,6 +7,7 @@ import { useState, useRef, useCallback } from 'react';
  */
 export function useAmbientMusic() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading] = useState(false);
   const ctxRef = useRef<AudioContext | null>(null);
   const masterRef = useRef<GainNode | null>(null);
   const intervalsRef = useRef<ReturnType<typeof setInterval>[]>([]);
@@ -150,5 +151,5 @@ export function useAmbientMusic() {
     setIsPlaying(false);
   }, []);
 
-  return { play, stop, isLoading: false, isPlaying, cleanup };
+  return { play, stop, isLoading, isPlaying, cleanup };
 }
