@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 /**
  * Generates natural ambient soundscape using Web Audio API.
@@ -11,9 +11,32 @@ export function useAmbientMusic() {
   const ctxRef = useRef<AudioContext | null>(null);
   const masterRef = useRef<GainNode | null>(null);
   const intervalsRef = useRef<ReturnType<typeof setInterval>[]>([]);
+  const isPlayingRef = useRef(false);
+
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+
+  const cleanup = useCallback(() => {
+    console.log('[Ambient] cleanup() called');
+    intervalsRef.current.forEach(clearInterval);
+    intervalsRef.current = [];
+    if (ctxRef.current) {
+      try { ctxRef.current.close(); } catch {}
+      ctxRef.current = null;
+    }
+    masterRef.current = null;
+    setIsPlaying(false);
+    isPlayingRef.current = false;
+  }, []);
 
   const play = useCallback(async () => {
-    if (isPlaying) return;
+    if (isPlayingRef.current) return;
+
+    // Clean up any leftover context
+    if (ctxRef.current) {
+      cleanup();
+    }
 
     const ctx = new AudioContext();
     ctxRef.current = ctx;
@@ -57,8 +80,7 @@ export function useAmbientMusic() {
     rainGain.connect(master);
     noise.start();
 
-    // ── Binaural beats (alpha 10Hz — relaxation/subconscious) ──
-    // Left ear: 200Hz, Right ear: 210Hz → 10Hz alpha difference
+    // ── Binaural beats (alpha 10Hz) ──
     const binauralMerger = ctx.createChannelMerger(2);
     const binauralGain = ctx.createGain();
     binauralGain.gain.setValueAtTime(0.12, ctx.currentTime);
@@ -84,8 +106,8 @@ export function useAmbientMusic() {
     oscL.start();
     oscR.start();
 
-    // ── Gentle chime tones (random pentatonic notes, spaced out) ──
-    const pentatonic = [261.63, 293.66, 329.63, 392, 523.25]; // C4 pentatonic
+    // ── Gentle chime tones ──
+    const pentatonic = [261.63, 293.66, 329.63, 392, 523.25];
     const playChime = () => {
       if (!ctxRef.current || ctxRef.current.state === 'closed') return;
       const c = ctxRef.current;
@@ -110,46 +132,40 @@ export function useAmbientMusic() {
       osc.stop(c.currentTime + 4.5);
     };
 
-    // Play a chime every 4-8 seconds
     const chimeInterval = setInterval(() => {
       playChime();
     }, 4000 + Math.random() * 4000);
 
-    // First chime after 2s
     setTimeout(playChime, 2000);
 
     intervalsRef.current = [chimeInterval];
     setIsPlaying(true);
-  }, [isPlaying]);
+    isPlayingRef.current = true;
+  }, [cleanup]);
 
   const stop = useCallback(async () => {
     const ctx = ctxRef.current;
     const master = masterRef.current;
-    if (!ctx || !master) return;
+    if (!ctx || !master) {
+      cleanup();
+      return;
+    }
 
     intervalsRef.current.forEach(clearInterval);
     intervalsRef.current = [];
 
-    master.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.5);
+    try {
+      master.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.5);
+    } catch {}
 
     setTimeout(() => {
-      ctx.close();
+      try { ctx.close(); } catch {}
       ctxRef.current = null;
       masterRef.current = null;
       setIsPlaying(false);
+      isPlayingRef.current = false;
     }, 2700);
-  }, []);
-
-  const cleanup = useCallback(() => {
-    intervalsRef.current.forEach(clearInterval);
-    intervalsRef.current = [];
-    if (ctxRef.current) {
-      ctxRef.current.close();
-      ctxRef.current = null;
-    }
-    masterRef.current = null;
-    setIsPlaying(false);
-  }, []);
+  }, [cleanup]);
 
   return { play, stop, isLoading, isPlaying, cleanup };
 }
