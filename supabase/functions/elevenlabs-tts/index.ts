@@ -36,15 +36,33 @@ serve(async (req) => {
       });
     }
 
-    const { text, voiceId } = await req.json();
+    const body = await req.json();
+    const text = typeof body.text === "string" ? body.text.trim() : "";
+    const voiceId = typeof body.voiceId === "string" ? body.voiceId.trim() : "";
+
+    if (!text || text.length === 0) {
+      return new Response(JSON.stringify({ error: "Text is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (text.length > 500) {
+      return new Response(JSON.stringify({ error: "Text must be 500 characters or less" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (voiceId && !/^[a-zA-Z0-9]{10,30}$/.test(voiceId)) {
+      return new Response(JSON.stringify({ error: "Invalid voice ID format" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
 
     if (!ELEVENLABS_API_KEY) {
       throw new Error("ELEVENLABS_API_KEY is not configured");
-    }
-
-    if (!text || text.length === 0) {
-      throw new Error("Text is required");
     }
 
     // Use Laura voice (calm, soothing female Spanish voice) by default
