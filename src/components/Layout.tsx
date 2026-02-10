@@ -4,7 +4,7 @@ import { Home, Flame, BookOpen, CalendarDays, Target } from 'lucide-react';
 
 const navItems = [
   { path: '/dashboard', icon: Home, label: 'Inicio' },
-  { path: '/craving', icon: Flame, label: 'Craving' },
+  { path: '/craving', icon: Flame, label: 'Emergencia' },
   { path: '/sessions', icon: BookOpen, label: 'Sesiones' },
   { path: '/diary', icon: CalendarDays, label: 'Diario' },
   { path: '/plan', icon: Target, label: 'Plan' },

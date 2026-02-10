@@ -10,7 +10,7 @@ import { triggerOptions, emotionOptions } from '@/data/content';
 type Stage = 'intro' | 'breathing' | 'urge-surfing' | 'choice' | 'result';
 
 const urgeSurfingSteps = [
-  'Nota el craving. ¿Dónde lo sientes? ¿Pecho, garganta, manos?',
+  'Nota el ansia. ¿Dónde la sientes? ¿Pecho, garganta, manos?',
   'Dale una intensidad del 1 al 10. No luches contra él.',
   'Observa cómo cambia… sube… llega al pico…',
   'Y empieza a bajar. Como una ola. Tú miras desde la orilla.',
@@ -64,8 +64,8 @@ export default function CravingEmergency() {
           {stage === 'intro' && (
             <motion.div key="intro" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6 pt-8">
               <div className="text-center">
-                <h1 className="text-3xl font-serif font-bold text-foreground">El craving está aquí</h1>
-                <p className="text-muted-foreground mt-2">Durará 3-5 minutos. Vamos a pasarlo juntos.</p>
+                <h1 className="text-3xl font-serif font-bold text-foreground">El ansia está aquí</h1>
+                <p className="text-muted-foreground mt-2">Durará 3-5 minutos. Vamos a pasarla juntos.</p>
               </div>
 
               <div>
@@ -104,7 +104,7 @@ export default function CravingEmergency() {
                   🫁 Respiración guiada (90s)
                 </Button>
                 <Button onClick={() => { setStage('urge-surfing'); setSurfStep(0); }} variant="outline" className="w-full rounded-xl h-12 font-semibold">
-                  🌊 Urge surfing (90s)
+                  🌊 Surfeo de impulsos (90s)
                 </Button>
                 <Button onClick={() => setStage('choice')} variant="outline" className="w-full rounded-xl h-12">
                   ⚡ Acción rápida
@@ -117,7 +117,7 @@ export default function CravingEmergency() {
             <motion.div key="breathing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pt-12 text-center space-y-6">
               <h2 className="text-xl font-serif font-semibold text-foreground">Respira conmigo</h2>
               <BreathingCircle pattern="4-4-4-4" durationSeconds={90} onComplete={() => setStage('choice')} />
-              <p className="text-sm text-muted-foreground">El pico del craving está pasando...</p>
+              <p className="text-sm text-muted-foreground">El pico del ansia está pasando...</p>
               <Button variant="ghost" onClick={() => setStage('choice')} className="text-sm">
                 Saltar → Acción rápida
               </Button>
@@ -126,7 +126,7 @@ export default function CravingEmergency() {
 
           {stage === 'urge-surfing' && (
             <motion.div key="surfing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pt-12 space-y-8">
-              <h2 className="text-xl font-serif font-semibold text-foreground text-center">Urge Surfing</h2>
+              <h2 className="text-xl font-serif font-semibold text-foreground text-center">Surfeo de impulsos</h2>
               <div className="min-h-[120px] flex items-center justify-center px-4">
                 <AnimatePresence mode="wait">
                   <motion.p
@@ -205,7 +205,7 @@ export default function CravingEmergency() {
                   <div className="w-16 h-16 rounded-full bg-success/10 mx-auto flex items-center justify-center">
                     <Check size={32} className="text-success" />
                   </div>
-                  <h2 className="text-xl font-serif font-bold text-foreground">¡Craving superado!</h2>
+                  <h2 className="text-xl font-serif font-bold text-foreground">¡Ansia superada!</h2>
                   <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mx-auto">
                     Lo hiciste. El pico pasó y tú sigues aquí, sin fumar. Cada vez se vuelve más fácil.
                   </p>

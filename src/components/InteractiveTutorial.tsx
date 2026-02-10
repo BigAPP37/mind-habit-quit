@@ -13,7 +13,7 @@ const tutorialSteps = [
   {
     icon: Flame,
     title: 'Botón de emergencia',
-    description: 'Cuando tengas ganas de fumar, pulsa este botón. Te dará una intervención inmediata con respiración guiada y técnicas de urge surfing.',
+    description: 'Cuando tengas ganas de fumar, pulsa este botón. Te dará una intervención inmediata con respiración guiada y técnicas de surfeo de impulsos.',
     target: '[data-tutorial="emergency"]',
   },
   {
@@ -25,13 +25,13 @@ const tutorialSteps = [
   {
     icon: BookOpen,
     title: 'Sesiones guiadas',
-    description: 'Respiración, meditación, urge surfing y reprogramación mental. Sesiones de 1 a 10 minutos con audio guiado y música ambiental.',
+    description: 'Respiración, meditación, surfeo de impulsos y reprogramación mental. Sesiones de 1 a 10 minutos con audio guiado y música ambiental.',
     target: null,
   },
   {
     icon: CalendarDays,
     title: 'Diario emocional',
-    description: 'Registra cada día cómo te sientes: estado de ánimo, estrés, sueño y cravings. Esto te ayuda a identificar patrones.',
+    description: 'Registra cada día cómo te sientes: estado de ánimo, estrés, sueño y nivel de ansia. Esto te ayuda a identificar patrones.',
     target: null,
   },
   {
