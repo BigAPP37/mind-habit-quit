@@ -113,6 +113,8 @@ export default function SessionDetail() {
         return;
       }
 
+      setDownloadProgress(20);
+
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`, {
         method: 'POST',
         headers: {
@@ -123,54 +125,24 @@ export default function SessionDetail() {
         body: JSON.stringify({
           text: session.scriptText,
           voiceId: selectedVoice.voiceId,
+          mode: 'download',
         }),
       });
 
       if (!response.ok) throw new Error(`Error ${response.status}`);
 
-      const contentLength = response.headers.get('Content-Length');
-      const total = contentLength ? parseInt(contentLength, 10) : 0;
+      setDownloadProgress(70);
 
-      if (!response.body || !total) {
-        // Fallback: no streaming progress available
-        setDownloadProgress(10);
-        const blob = await response.blob();
+      const data = await response.json();
+
+      if (data?.url) {
         setDownloadProgress(100);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${session.title.replace(/[^a-zA-Z0-9áéíóúñ ]/g, '')}.mp3`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        toast.success('Audio descargado');
-        return;
+        // Open the signed URL — browser handles the download natively
+        window.open(data.url, '_blank');
+        toast.success('Audio listo para guardar');
+      } else {
+        throw new Error('No se recibió URL de descarga');
       }
-
-      const reader = response.body.getReader();
-      const chunks: BlobPart[] = [];
-      let received = 0;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        received += value.length;
-        setDownloadProgress(Math.min(Math.round((received / total) * 100), 99));
-      }
-
-      setDownloadProgress(100);
-      const blob = new Blob(chunks, { type: 'audio/mpeg' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${session.title.replace(/[^a-zA-Z0-9áéíóúñ ]/g, '')}.mp3`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success('Audio descargado');
     } catch (error) {
       console.error('Download error:', error);
       toast.error('No se pudo descargar el audio');

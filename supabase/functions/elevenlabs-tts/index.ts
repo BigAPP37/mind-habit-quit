@@ -76,6 +76,7 @@ serve(async (req) => {
     const selectedVoice = voiceId || "FGY2WhTYpPnrIDTdsKH5";
     const cacheKey = await hashText(text, selectedVoice);
     const cachePath = `${cacheKey}.mp3`;
+    const mode = body.mode || "stream"; // "stream" or "download"
 
     // Check cache first
     const { data: cachedFile } = await supabaseAdmin.storage
@@ -84,6 +85,23 @@ serve(async (req) => {
 
     if (cachedFile) {
       console.log("Cache HIT for:", cacheKey.slice(0, 12));
+
+      // For download mode, return a signed URL
+      if (mode === "download") {
+        const { data: signedData, error: signedError } = await supabaseAdmin.storage
+          .from("tts-cache")
+          .createSignedUrl(cachePath, 300, { download: true });
+
+        if (signedError || !signedData?.signedUrl) {
+          console.error("Signed URL error:", signedError?.message);
+          // Fallback to streaming
+        } else {
+          return new Response(JSON.stringify({ url: signedData.signedUrl }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
       const audioBuffer = await cachedFile.arrayBuffer();
       return new Response(audioBuffer, {
         headers: {
@@ -138,17 +156,32 @@ serve(async (req) => {
     const audioBuffer = await response.arrayBuffer();
     console.log("TTS generated, size:", audioBuffer.byteLength, "- caching...");
 
-    // Cache the audio (fire and forget, don't block response)
-    supabaseAdmin.storage
+    // Cache the audio and wait if download mode (need signed URL)
+    const { error: uploadError } = await supabaseAdmin.storage
       .from("tts-cache")
       .upload(cachePath, audioBuffer, {
         contentType: "audio/mpeg",
         upsert: false,
-      })
-      .then(({ error }) => {
-        if (error) console.error("Cache upload error:", error.message);
-        else console.log("Cached:", cacheKey.slice(0, 12));
       });
+
+    if (uploadError) {
+      console.error("Cache upload error:", uploadError.message);
+    } else {
+      console.log("Cached:", cacheKey.slice(0, 12));
+    }
+
+    // For download mode, return signed URL after caching
+    if (mode === "download" && !uploadError) {
+      const { data: signedData } = await supabaseAdmin.storage
+        .from("tts-cache")
+        .createSignedUrl(cachePath, 300, { download: true });
+
+      if (signedData?.signedUrl) {
+        return new Response(JSON.stringify({ url: signedData.signedUrl }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     return new Response(audioBuffer, {
       headers: {
