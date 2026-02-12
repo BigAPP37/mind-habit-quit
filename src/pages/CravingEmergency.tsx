@@ -18,11 +18,11 @@ const urgeSurfingSteps = [
 ];
 
 const quickActions = [
-  { icon: Droplets, label: 'Agua', color: 'text-calm' },
-  { icon: Footprints, label: 'Caminar 3 min', color: 'text-success' },
-  { icon: Candy, label: 'Chicle/menta', color: 'text-accent' },
-  { icon: Snowflake, label: 'Agua fría cara', color: 'text-primary' },
-  { icon: MessageSquare, label: 'Mensaje a mi yo futuro', color: 'text-primary' },
+  { id: 'water', icon: Droplets, label: 'Agua', color: 'text-calm' },
+  { id: 'walk', icon: Footprints, label: 'Caminar 3 min', color: 'text-success' },
+  { id: 'gum', icon: Candy, label: 'Chicle/menta', color: 'text-accent' },
+  { id: 'cold_water_face', icon: Snowflake, label: 'Agua fría cara', color: 'text-primary' },
+  { id: 'message_future_self', icon: MessageSquare, label: 'Mensaje a mi yo futuro', color: 'text-primary' },
 ];
 
 export default function CravingEmergency() {
@@ -34,9 +34,13 @@ export default function CravingEmergency() {
   const [outcome, setOutcome] = useState<'reduced' | 'smoked' | 'ignored' | null>(null);
   const [trigger, setTrigger] = useState('');
   const [emotion, setEmotion] = useState('');
+  const [selectedQuickAction, setSelectedQuickAction] = useState<string | null>(null);
   const startTime = useState(Date.now())[0];
 
   const saveEvent = (result: 'reduced' | 'smoked' | 'ignored') => {
+    // En este flujo, solo se permite guardar cuando ya se eligió una acción.
+    if (!selectedQuickAction) return;
+
     setOutcome(result);
     const event: CravingEvent = {
       id: Date.now().toString(),
@@ -44,13 +48,17 @@ export default function CravingEmergency() {
       intensity,
       trigger,
       emotion,
-      interventionUsed: stage === 'breathing' ? 'breathing' : 'urge_surfing',
+      interventionUsed: `quick_action:${selectedQuickAction}`,
       outcome: result,
       durationSeconds: Math.floor((Date.now() - startTime) / 1000),
     };
     addCravingEvent(event);
     setStage('result');
   };
+
+  const selectedLabel = selectedQuickAction
+    ? quickActions.find(a => a.id === selectedQuickAction)?.label ?? selectedQuickAction
+    : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,9 +89,15 @@ export default function CravingEmergency() {
                 <label className="text-sm font-medium text-foreground mb-2 block">¿Qué lo disparó?</label>
                 <div className="flex flex-wrap gap-2">
                   {triggerOptions.slice(0, 8).map(t => (
-                    <button key={t} onClick={() => setTrigger(t)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all min-h-[36px] ${trigger === t ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground'}`}
-                    >{t}</button>
+                    <button
+                      key={t}
+                      onClick={() => setTrigger(t)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all min-h-[36px] ${
+                        trigger === t ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground'
+                      }`}
+                    >
+                      {t}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -92,21 +106,31 @@ export default function CravingEmergency() {
                 <label className="text-sm font-medium text-foreground mb-2 block">¿Cómo te sientes?</label>
                 <div className="flex flex-wrap gap-2">
                   {emotionOptions.slice(0, 6).map(e => (
-                    <button key={e} onClick={() => setEmotion(e)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all min-h-[36px] ${emotion === e ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground'}`}
-                    >{e}</button>
+                    <button
+                      key={e}
+                      onClick={() => setEmotion(e)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all min-h-[36px] ${
+                        emotion === e ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground'
+                      }`}
+                    >
+                      {e}
+                    </button>
                   ))}
                 </div>
               </div>
 
               <div className="grid gap-3 pt-2">
-                <Button onClick={() => setStage('breathing')} className="w-full rounded-xl h-12 font-semibold text-sm sm:text-base">
+                <Button onClick={() => { setSelectedQuickAction(null); setStage('breathing'); }} className="w-full rounded-xl h-12 font-semibold text-sm sm:text-base">
                   🫁 Respiración guiada (90s)
                 </Button>
-                <Button onClick={() => { setStage('urge-surfing'); setSurfStep(0); }} variant="outline" className="w-full rounded-xl h-12 font-semibold text-sm sm:text-base">
+                <Button
+                  onClick={() => { setSelectedQuickAction(null); setStage('urge-surfing'); setSurfStep(0); }}
+                  variant="outline"
+                  className="w-full rounded-xl h-12 font-semibold text-sm sm:text-base"
+                >
                   🌊 Surfeo de impulsos (90s)
                 </Button>
-                <Button onClick={() => setStage('choice')} variant="outline" className="w-full rounded-xl h-12 text-sm sm:text-base">
+                <Button onClick={() => { setSelectedQuickAction(null); setStage('choice'); }} variant="outline" className="w-full rounded-xl h-12 text-sm sm:text-base">
                   ⚡ Acción rápida
                 </Button>
               </div>
@@ -160,28 +184,41 @@ export default function CravingEmergency() {
                 <h2 className="text-xl font-serif font-semibold text-foreground">Elige una acción</h2>
                 <p className="text-sm text-muted-foreground mt-1">Algo simple para los próximos 3 minutos</p>
               </div>
+
               <div className="grid gap-2">
                 {quickActions.map(a => (
-                  <button key={a.label} className="flex items-center gap-3 p-3.5 rounded-xl bg-card shadow-card hover:shadow-elevated transition-shadow text-left min-h-[52px]">
+                  <button
+                    key={a.id}
+                    onClick={() => setSelectedQuickAction(a.id)}
+                    className={`flex items-center gap-3 p-3.5 rounded-xl bg-card shadow-card hover:shadow-elevated transition-all text-left min-h-[52px] border ${
+                      selectedQuickAction === a.id ? 'border-primary ring-2 ring-primary/20' : 'border-transparent'
+                    }`}
+                  >
                     <a.icon size={20} className={a.color} />
                     <span className="text-sm font-medium text-foreground">{a.label}</span>
                   </button>
                 ))}
               </div>
-              <div className="space-y-3 pt-2">
-                <p className="text-sm font-medium text-foreground text-center">¿Cómo fue?</p>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button onClick={() => saveEvent('reduced')} className="rounded-xl bg-success hover:bg-success/90 text-success-foreground h-11 text-xs sm:text-sm">
-                    Bajó 🎉
-                  </Button>
-                  <Button onClick={() => saveEvent('ignored')} variant="outline" className="rounded-xl h-11 text-xs sm:text-sm">
-                    Me distraje
-                  </Button>
-                  <Button onClick={() => saveEvent('smoked')} variant="outline" className="rounded-xl text-muted-foreground h-11 text-xs sm:text-sm">
-                    Fumé
-                  </Button>
+
+              {selectedQuickAction ? (
+                <div className="space-y-3 pt-2">
+                  <p className="text-center text-xs sm:text-sm text-primary font-medium">✅ Acción elegida: {selectedLabel}</p>
+                  <p className="text-sm font-medium text-foreground text-center">¿Cómo fue?</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button onClick={() => saveEvent('reduced')} className="rounded-xl bg-success hover:bg-success/90 text-success-foreground h-11 text-xs sm:text-sm">
+                      Bajó 🎉
+                    </Button>
+                    <Button onClick={() => saveEvent('ignored')} variant="outline" className="rounded-xl h-11 text-xs sm:text-sm">
+                      Me distraje
+                    </Button>
+                    <Button onClick={() => saveEvent('smoked')} variant="outline" className="rounded-xl text-muted-foreground h-11 text-xs sm:text-sm">
+                      Fumé
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <p className="text-center text-xs sm:text-sm text-muted-foreground pt-2">Selecciona una acción para continuar</p>
+              )}
             </motion.div>
           )}
 
