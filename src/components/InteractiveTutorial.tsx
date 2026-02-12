@@ -37,7 +37,7 @@ const tutorialSteps = [
   {
     icon: Target,
     title: 'Tu plan personalizado',
-    description: 'Configura reglas si-entonces para tus disparadores. Cuando sientas X, haz Y. La ciencia lo llama "implementation intentions" y duplica las probabilidades de éxito.',
+    description: 'Configura reglas si-entonces para tus disparadores. Cuando sientas X, haz Y. La ciencia lo llama «intenciones de implementación» y duplica las probabilidades de éxito.',
     target: null,
   },
 ];

@@ -146,7 +146,7 @@ export default function Diary() {
           <div className="flex gap-1">
             <button onClick={() => setViewMode('checkin')}
               className={`px-3 py-1.5 rounded-md text-xs font-medium min-h-[36px] ${viewMode === 'checkin' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}
-            >Check-in</button>
+            >Registro</button>
             <button onClick={() => setViewMode('history')}
               className={`px-3 py-1.5 rounded-md text-xs font-medium min-h-[36px] ${viewMode === 'history' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}
             >Historial</button>
@@ -155,7 +155,7 @@ export default function Diary() {
 
         {viewMode === 'checkin' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 sm:space-y-5">
-            <p className="text-sm text-muted-foreground">Check-in rápido del día · {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+            <p className="text-sm text-muted-foreground">Registro rápido del día · {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
 
             {/* Smoked? */}
             <div className="flex gap-2.5 sm:gap-3">
@@ -243,7 +243,7 @@ export default function Diary() {
             </AnimatePresence>
 
             <Button onClick={save} className="w-full rounded-xl h-12 font-semibold">
-              <Check size={18} className="mr-2" /> Guardar check-in
+              <Check size={18} className="mr-2" /> Guardar registro
             </Button>
           </motion.div>
         )}
@@ -254,7 +254,7 @@ export default function Diary() {
               <div className="text-center py-12">
                 <p className="text-muted-foreground text-sm">Aún no hay registros.</p>
                 <Button onClick={() => setViewMode('checkin')} variant="outline" className="mt-4 rounded-full">
-                  Hacer mi primer check-in
+                  Hacer mi primer registro
                 </Button>
               </div>
             ) : (

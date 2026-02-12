@@ -4,7 +4,7 @@ import { Wind, Brain, Shield, Heart, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const features = [
-  { icon: Wind, title: 'Respiración guiada', desc: 'Técnicas científicas para calmar el craving en minutos.' },
+  { icon: Wind, title: 'Respiración guiada', desc: 'Técnicas científicas para calmar la ansia en minutos.' },
   { icon: Brain, title: 'Reprogramación mental', desc: 'Reestructura tus hábitos con técnicas cognitivas probadas.' },
   { icon: Shield, title: 'Modo emergencia', desc: 'Intervención inmediata cuando la ansia aparece.' },
   { icon: Heart, title: 'Sin juicios', desc: 'Si recaes, te ayudamos a volver. Sin culpa, con plan.' },
@@ -82,7 +82,7 @@ export default function Landing() {
           {[
             { step: '1', title: 'Configura tu plan', desc: 'Define tu objetivo, disparadores y fecha. 5 minutos.' },
             { step: '2', title: 'Practica cada día', desc: 'Micro-acciones, respiración y sesiones de 2-10 minutos.' },
-            { step: '3', title: 'Supera los cravings', desc: 'Modo emergencia con intervención inmediata cuando lo necesites.' },
+            { step: '3', title: 'Supera las ansias', desc: 'Modo emergencia con intervención inmediata cuando lo necesites.' },
           ].map((item, i) => (
             <motion.div
               key={item.step}
