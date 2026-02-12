@@ -71,14 +71,14 @@ export const scientificEvidence: SessionTypeEvidence[] = [
   },
   {
     type: 'mindfulness',
-    explanation: 'La meditación mindfulness entrena la capacidad de observar pensamientos y sensaciones sin reaccionar automáticamente. En el contexto del tabaquismo, permite al fumador "desacoplarse" del impulso de fumar: la ansia aparece, se observa, y se deja pasar sin actuar. Estudios con neuroimagen muestran que la práctica regular de mindfulness reduce la actividad en la corteza cingulada anterior (asociada a la ansia) y fortalece la corteza prefrontal (control de impulsos).',
+    explanation: 'La meditación de atención plena (mindfulness) entrena la capacidad de observar pensamientos y sensaciones sin reaccionar automáticamente. En el contexto del tabaquismo, permite al fumador "desacoplarse" del impulso de fumar: la ansia aparece, se observa, y se deja pasar sin actuar. Estudios con neuroimagen muestran que la práctica regular de atención plena reduce la actividad en la corteza cingulada anterior (asociada a la ansia) y fortalece la corteza prefrontal (control de impulsos).',
     references: [
       {
         title: 'Craving to Quit: A Randomized Controlled Trial of Smartphone App-Based Mindfulness Training for Smoking Cessation',
         authors: 'Garrison KA, et al.',
         journal: 'Nicotine & Tobacco Research',
         year: 2020,
-        finding: 'El entrenamiento en mindfulness a través de app móvil produjo reducciones significativas en el consumo de cigarros (−11.1 cigarros/día) frente al grupo control.',
+        finding: 'El entrenamiento en atención plena a través de app móvil produjo reducciones significativas en el consumo de cigarros (−11.1 cigarros/día) frente al grupo control.',
         doi: '10.1093/ntr/ntz176'
       },
       {
@@ -86,7 +86,7 @@ export const scientificEvidence: SessionTypeEvidence[] = [
         authors: 'Davis JM, et al.',
         journal: 'Substance Use & Misuse',
         year: 2014,
-        finding: 'El mindfulness training mostró tasas de abstinencia significativamente mayores (20.6% vs 8.8%) a las 24 semanas de seguimiento.',
+        finding: 'El entrenamiento en atención plena mostró tasas de abstinencia significativamente mayores (20.6% vs 8.8%) a las 24 semanas de seguimiento.',
         doi: '10.3109/10826084.2013.770025'
       },
       {
@@ -94,7 +94,7 @@ export const scientificEvidence: SessionTypeEvidence[] = [
         authors: 'Roos CR, Harp NR, Vafaie N, et al.',
         journal: 'Yale University School of Medicine',
         year: 2023,
-        finding: 'El entrenamiento en regulación del ansia basado en mindfulness redujo significativamente la reactividad al ansia y el consumo de cigarros en fumadores diarios.',
+        finding: 'El entrenamiento en regulación del ansia basado en atención plena redujo significativamente la reactividad al ansia y el consumo de cigarros en fumadores diarios.',
       }
     ]
   },
@@ -235,7 +235,7 @@ export const urgeSurfingSessions: Session[] = [
   },
   {
     id: 'u3', type: 'urge_surfing', title: 'Escaneo corporal del ansia',
-    durationMinutes: 3, tags: ['cuerpo', 'mindfulness', 'sensaciones'],
+    durationMinutes: 3, tags: ['cuerpo', 'atención plena', 'sensaciones'],
     scriptText: 'Cierra los ojos un momento.\n\nEscanea tu cuerpo despacio, desde los pies hasta la cabeza.\n\n¿Dónde está la tensión? ¿En el pecho? ¿En las manos? ¿En la mandíbula?\n\nCuando la encuentres, lleva tu atención ahí. Y respira hacia esa zona.\n\nInhala... dirigiendo el aire hacia donde sientes la tensión.\n\nExhala... dejando que se ablande.\n\nEsa tensión no es peligrosa. Es solo tu cuerpo pidiendo algo que ya no necesita. Respira. Y suelta.'
   },
   {
@@ -250,7 +250,7 @@ export const urgeSurfingSessions: Session[] = [
   },
   {
     id: 'u6', type: 'urge_surfing', title: 'La técnica de los 5 sentidos',
-    durationMinutes: 2, tags: ['grounding', 'presente', 'rápido'],
+    durationMinutes: 2, tags: ['anclaje', 'presente', 'rápido'],
     scriptText: 'Vamos a traer tu mente al presente. Ahora mismo.\n\nNombra cinco cosas que ves a tu alrededor.\n\nCuatro cosas que puedes tocar.\n\nTres sonidos que escuchas.\n\nDos cosas que hueles.\n\nY una cosa que saboreas.\n\nAcabas de aterrizar en el aquí y ahora. El ansia vive en el futuro, en el "necesitaré fumar". Pero en el presente, ahora mismo, estás bien.'
   },
   {
@@ -287,7 +287,7 @@ export const mindfulnessSessions: Session[] = [
     scriptText: 'Pon una mano sobre tu pecho. Suavemente. Siente tu corazón latiendo ahí debajo.\n\nAhora dite esto, con amabilidad: Dejar de fumar es difícil. Millones de personas luchan con esto. No estoy solo en esto.\n\nRepite: Me trato con la misma amabilidad con la que trataría a un buen amigo.\n\nSi has tenido un tropiezo, si has recaído... escucha esto: un tropiezo no borra el camino que ya has recorrido.\n\nSigues aquí. Sigues intentándolo. Y eso merece respeto.\n\nRespira. Y sigue adelante. Un paso más.'
   },
   {
-    id: 'm3', type: 'mindfulness', title: 'Body scan para tensión',
+    id: 'm3', type: 'mindfulness', title: 'Escaneo corporal para tensión',
     durationMinutes: 5, tags: ['cuerpo', 'tensión', 'relajación'],
     scriptText: 'Vamos a recorrer tu cuerpo de abajo a arriba. Despacio.\n\nEmpieza por los pies. ¿Cómo se sienten?\n\nSube a las piernas. Nota si hay tensión.\n\nEl abdomen. Quizá está apretado. Déjalo ser.\n\nEl pecho. Respira hacia él.\n\nLos hombros. Déjalos caer un poco.\n\nEl cuello. La mandíbula. ¿Estás apretando los dientes? Suelta.\n\nLa frente. Relájala.\n\n¿Dónde encontraste más tensión? Respira hacia ahí una vez más.\n\nNo tienes que arreglar nada. Solo notar. Eso ya es suficiente.'
   },
@@ -303,7 +303,7 @@ export const mindfulnessSessions: Session[] = [
   },
   {
     id: 'm6', type: 'mindfulness', title: 'Meditación: soltar el control',
-    durationMinutes: 3, tags: ['aceptación', 'ACT', 'soltar'],
+    durationMinutes: 3, tags: ['aceptación', 'terapia aceptación', 'soltar'],
     scriptText: 'No tienes que controlar cada pensamiento que aparece en tu mente.\n\nEl pensamiento quiero fumar puede estar ahí. Puede existir. No pasa nada.\n\nEs como un ruido de fondo. Aparece, está un rato, y se va solo.\n\nNo tienes que apagarlo. No tienes que luchar contra él.\n\nSolo tienes que... no levantarte a comprar. Eso es todo.\n\nDejar que el pensamiento esté ahí, sin obedecerlo. Eso es libertad.'
   },
   {
