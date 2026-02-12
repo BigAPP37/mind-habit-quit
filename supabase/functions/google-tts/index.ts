@@ -108,8 +108,8 @@ serve(async (req) => {
       );
     }
 
-    const data = await response.json();
-    const audioContent = data.audioContent;
+    const ttsData = await response.json();
+    const audioContent = ttsData.audioContent;
 
     const binaryString = atob(audioContent);
     const bytes = new Uint8Array(binaryString.length);

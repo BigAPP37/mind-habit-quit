@@ -27,7 +27,7 @@ Para reprogramar un hábito, la neurociencia muestra que se necesitan tres eleme
 
 La técnica de coherencia cardíaca (5-5: inhalar 5s, exhalar 5s) fue validada por el HeartMath Institute y utilizada en programas militares de control de estrés. Solo 5 minutos al día reducen significativamente la reactividad al estrés.
 
-Un estudio publicado en Addictive Behaviors (2013) demostró que ejercicios de respiración controlada redujeron la intensidad del craving de tabaco en un 30% en comparación con el grupo control.`,
+Un estudio publicado en Addictive Behaviors (2013) demostró que ejercicios de respiración controlada redujeron la intensidad de la ansia de tabaco en un 30% en comparación con el grupo control.`,
     refs: [
       { text: 'Zaccaro et al. (2018). "How Breath-Control Can Change Your Life." Frontiers in Human Neuroscience', url: 'https://doi.org/10.3389/fnhum.2018.00353' },
       { text: 'McClernon et al. (2013). "Pranayamic breathing and smoking cessation." Addictive Behaviors', url: 'https://doi.org/10.1016/j.addbeh.2013.06.002' },
@@ -49,7 +49,7 @@ Un meta-análisis de García-Argibay et al. (2019) publicado en Psychological Re
   {
     icon: BookOpen,
     title: 'Urge surfing y mindfulness',
-    content: `La técnica de «surfear el craving» (urge surfing) fue desarrollada por el Dr. Alan Marlatt en la Universidad de Washington. Se basa en un principio simple: los cravings son como olas — suben, alcanzan un pico, y bajan solos en 3-5 minutos si no los alimentas.
+    content: `La técnica de «surfeo de impulsos» fue desarrollada por el Dr. Alan Marlatt en la Universidad de Washington. Se basa en un principio simple: las ansias son como olas — suben, alcanzan un pico, y bajan solas en 3-5 minutos si no las alimentas.
 
 Un ensayo clínico randomizado de Brewer et al. (2011) publicado en Drug and Alcohol Dependence demostró que el mindfulness-based training fue más efectivo que el tratamiento estándar (American Lung Association) para dejar de fumar, con tasas de abstinencia un 31% mayores a las 17 semanas.
 

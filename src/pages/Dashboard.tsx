@@ -113,7 +113,7 @@ export default function Dashboard() {
             <Button asChild variant="outline" className="w-full rounded-xl h-12">
               <Link to="/diary">
                 <SmilePlus size={18} className="mr-2" />
-                Check-in del día (10s)
+                Registro del día (10s)
               </Link>
             </Button>
           </motion.div>
