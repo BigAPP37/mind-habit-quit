@@ -48,10 +48,10 @@ Un meta-análisis de García-Argibay et al. (2019) publicado en Psychological Re
   },
   {
     icon: BookOpen,
-    title: 'Urge surfing y mindfulness',
+    title: 'Surfeo de impulsos y atención plena',
     content: `La técnica de «surfeo de impulsos» fue desarrollada por el Dr. Alan Marlatt en la Universidad de Washington. Se basa en un principio simple: las ansias son como olas — suben, alcanzan un pico, y bajan solas en 3-5 minutos si no las alimentas.
 
-Un ensayo clínico randomizado de Brewer et al. (2011) publicado en Drug and Alcohol Dependence demostró que el mindfulness-based training fue más efectivo que el tratamiento estándar (American Lung Association) para dejar de fumar, con tasas de abstinencia un 31% mayores a las 17 semanas.
+Un ensayo clínico randomizado de Brewer et al. (2011) publicado en Drug and Alcohol Dependence demostró que el entrenamiento basado en atención plena (mindfulness) fue más efectivo que el tratamiento estándar (American Lung Association) para dejar de fumar, con tasas de abstinencia un 31% mayores a las 17 semanas.
 
 La reestructuración cognitiva —otra técnica usada en Rewire Smoke— ayuda a cuestionar pensamientos automáticos como «solo uno no pasa nada», desarmando los argumentos que el hábito utiliza para perpetuarse.`,
     refs: [

@@ -35,7 +35,7 @@ const stagger = {
 
 const typeLabels: Record<string, string> = {
   breathing: 'Respiración',
-  mindfulness: 'Mindfulness',
+  mindfulness: 'Atención plena',
   urge_surfing: 'Surfeo de impulsos',
   reprogramming: 'Reprogramación',
 };
